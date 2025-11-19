@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration Kontrolü</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #22543d;
+            margin-bottom: 15px;
+            font-size: 32px;
+        }
+
+        .message {
+            color: #2d3748;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .info-box {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .info-box h3 {
+            color: #22543d;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-box ul {
+            color: #2d3748;
+            line-height: 1.8;
+            padding-left: 20px;
+        }
+
+        .info-box li {
+            margin-bottom: 8px;
+        }
+
+        .link-btn {
+            display: inline-block;
+            background: #48bb78;
+            color: white;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        .link-btn:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+        }
+
+        .secondary-btn {
+            background: #667eea;
+        }
+
+        .secondary-btn:hover {
+            background: #5568d3;
+        }
+
+        .feature-list {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .feature-list h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-text strong {
+            color: #2d3748;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .feature-text span {
+            color: #718096;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="success-icon">✅</div>
+        <h1>Migration Başarılı!</h1>
+        <p class="message">
+            Veritabanı tablosu zaten oluşturulmuş! Tüm özellikler kullanıma hazır.
+        </p>
+
+        <div class="info-box">
+            <h3>🎉 Neler Yapabilirsiniz?</h3>
+            <ul>
+                <li><strong>Sayfa Düzenleyici:</strong> Ana sayfadaki bölümleri sırala, göster/gizle</li>
+                <li><strong>İçerik Yönetimi:</strong> Her bölümün başlık, açıklama ve detaylarını düzenle</li>
+                <li><strong>Program Düzenleyici:</strong> Etkinlik programı maddelerini ekle/çıkar/düzenle</li>
+                <li><strong>Davetiye Oluşturucu:</strong> 4 farklı şablonla otomatik davetiye görseli oluştur</li>
+                <li><strong>Kayıt Yönetimi:</strong> Katılımcı kayıtlarını görüntüle ve dışa aktar</li>
+            </ul>
+        </div>
+
+        <div class="feature-list">
+            <h3>📋 Özellik Listesi</h3>
+
+            <div class="feature-item">
+                <span class="feature-icon">🎨</span>
+                <div class="feature-text">
+                    <strong>Sayfa Bölümleri</strong>
+                    <span>Hero, Countdown, Program, Registration, Location, Footer - Sürükle-bırak ile sırala</span>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <span class="feature-icon">📝</span>
+                <div class="feature-text">
+                    <strong>Dinamik İçerik</strong>
+                    <span>Her bölümün başlık, açıklama, tarih, konum gibi tüm bilgilerini düzenle</span>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <span class="feature-icon">🖼️</span>
+                <div class="feature-text">
+                    <strong>Davetiye Görseli</strong>
+                    <span>Modern, Elegant, Minimal, Colorful - 4 şablon, 1080x1080 PNG çıktı</span>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <span class="feature-icon">👥</span>
+                <div class="feature-text">
+                    <strong>Kayıt Sistemi</strong>
+                    <span>Katılımcı kayıtları, arama, filtreleme, CSV export</span>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <span class="feature-icon">⏱️</span>
+                <div class="feature-text">
+                    <strong>Geri Sayım</strong>
+                    <span>Etkinliğe kalan süreyi gün, saat, dakika, saniye olarak göster</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <a href="http://localhost:8081/admin/login" class="link-btn">
+                🚀 Admin Paneline Git
+            </a>
+            <a href="http://localhost:8081" class="link-btn secondary-btn">
+                🏠 Ana Sayfaya Git
+            </a>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #edf2f7; border-radius: 8px;">
+            <p style="color: #4a5568; font-size: 14px; margin-bottom: 10px;">
+                <strong>Admin Giriş Bilgileri:</strong>
+            </p>
+            <p style="color: #718096; font-size: 14px;">
+                Kullanıcı Adı: <code
+                    style="background: white; padding: 2px 8px; border-radius: 4px; color: #2d3748;">admin</code><br>
+                Şifre: <code
+                    style="background: white; padding: 2px 8px; border-radius: 4px; color: #2d3748;">admin123</code>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-redirect after 5 seconds
+        setTimeout(() => {
+            const countdown = document.createElement('div');
+            countdown.style.cssText = 'margin-top: 20px; color: #718096; font-size: 14px;';
+            countdown.innerHTML = '5 saniye içinde admin paneline yönlendiriliyorsunuz...';
+            document.querySelector('.container').appendChild(countdown);
+
+            let seconds = 5;
+            const interval = setInterval(() => {
+                seconds--;
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    window.location.href = 'http://localhost:8081/admin/login';
+                } else {
+                    countdown.innerHTML = seconds + ' saniye içinde admin paneline yönlendiriliyorsunuz...';
+                }
+            }, 1000);
+        }, 2000);
+    </script>
+</body>
+
+</html>

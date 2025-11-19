@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Bağlantı Testi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #1a202c;
+            margin-bottom: 30px;
+        }
+
+        .test-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .test-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .test-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            color: #22543d;
+        }
+
+        .result.error {
+            background: #fff5f5;
+            border: 2px solid #f56565;
+            color: #742a2a;
+        }
+
+        .result h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .result pre {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .info-box {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .info-box h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .data-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .data-list li {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .data-list li strong {
+            color: #2d3748;
+        }
+
+        .data-list li span {
+            color: #4a5568;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔍 Supabase Bağlantı Testi</h1>
+
+        <div class="info-box">
+            <h3>Bu Test Nedir?</h3>
+            <p>
+                Bu sayfa, projenizin Supabase veritabanına bağlanıp bağlanamadığını ve
+                <code>page_sections</code> tablosundan veri çekip çekemediğini test eder.
+            </p>
+        </div>
+
+        <button class="test-btn" onclick="testConnection()">
+            <span id="btnText">Bağlantıyı Test Et</span>
+        </button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://dmfjmkkamrzcmkwkhnyu.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtZmpta2thbXJ6Y21rd2tobnl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MzgwMzIsImV4cCI6MjA3ODUxNDAzMn0.U5fKADJesMXrN4zh_ByHfz2MRxfjDmEcbLe0JkKWCd4';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function testConnection() {
+            const btn = document.querySelector('.test-btn');
+            const btnText = document.getElementById('btnText');
+            const result = document.getElementById('result');
+
+            btn.disabled = true;
+            btnText.innerHTML = 'Test Ediliyor... <span class="loading"></span>';
+            result.style.display = 'none';
+
+            try {
+                console.log('Testing Supabase connection...');
+                console.log('URL:', SUPABASE_URL);
+
+                // Test 1: Basic connection
+                const { data: testData, error: testError } = await supabase
+                    .from('page_sections')
+                    .select('*')
+                    .order('display_order', { ascending: true });
+
+                if (testError) {
+                    throw testError;
+                }
+
+                // Success!
+                result.className = 'result success';
+                result.style.display = 'block';
+                result.innerHTML = `
+                    <h3>✅ Bağlantı Başarılı!</h3>
+                    <p><strong>Bulunan Bölüm Sayısı:</strong> ${testData?.length || 0}</p>
+                    <br>
+                    <h4>Bölümler:</h4>
+                    <ul class="data-list">
+                        ${testData?.map(section => `
+                            <li>
+                                <strong>${section.section_title}</strong><br>
+                                <span>Key: ${section.section_key} | Sıra: ${section.display_order} | Görünür: ${section.is_visible ? 'Evet' : 'Hayır'}</span>
+                            </li>
+                        `).join('') || '<li>Bölüm bulunamadı</li>'}
+                    </ul>
+                    <br>
+                    <h4>Ham Veri:</h4>
+                    <pre>${JSON.stringify(testData, null, 2)}</pre>
+                `;
+
+                console.log('Page sections data:', testData);
+
+            } catch (error) {
+                console.error('Connection test failed:', error);
+
+                result.className = 'result error';
+                result.style.display = 'block';
+                result.innerHTML = `
+                    <h3>❌ Bağlantı Hatası</h3>
+                    <p><strong>Hata Mesajı:</strong></p>
+                    <pre>${error.message || JSON.stringify(error, null, 2)}</pre>
+                    <br>
+                    <h4>Olası Çözümler:</h4>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li>Migration dosyasının çalıştırılmadığından emin olun</li>
+                        <li>Supabase Dashboard > SQL Editor'den migration SQL'ini çalıştırın</li>
+                        <li>Tablo izinlerini kontrol edin (RLS - Row Level Security)</li>
+                        <li>API Key'in doğru olduğundan emin olun</li>
+                    </ul>
+                `;
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Tekrar Test Et';
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            setTimeout(testConnection, 1000);
+        });
+    </script>
+</body>
+
+</html>

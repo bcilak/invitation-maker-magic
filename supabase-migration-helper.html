@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Migration Yardımcısı</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #1a202c;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .steps {
+            margin: 30px 0;
+        }
+
+        .step {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .step h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .step p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .sql-box {
+            background: #1a202c;
+            color: #68d391;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            position: relative;
+            margin-top: 15px;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .copy-btn.copied {
+            background: #48bb78;
+        }
+
+        .link-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .link-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .success-note {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 30px;
+            color: #22543d;
+        }
+
+        .warning-note {
+            background: #fffaf0;
+            border: 2px solid #ed8936;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #7c2d12;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Supabase Migration Kurulumu</h1>
+        <p class="subtitle">Sayfa bölümleri özelliğini etkinleştirmek için aşağıdaki adımları izleyin</p>
+
+        <div class="steps">
+            <div class="step">
+                <h3>
+                    <span class="step-number">1</span>
+                    Supabase Dashboard'a Gidin
+                </h3>
+                <p>Aşağıdaki butona tıklayarak Supabase projenizin SQL Editor sayfasına gidin:</p>
+                <a href="https://supabase.com/dashboard/project/dmfjmkkamrzcmkwkhnyu/sql/new" target="_blank"
+                    class="link-btn">
+                    📊 SQL Editor'ü Aç
+                </a>
+            </div>
+
+            <div class="step">
+                <h3>
+                    <span class="step-number">2</span>
+                    SQL Kodunu Kopyalayın
+                </h3>
+                <p>Aşağıdaki SQL kodunu kopyalayın (butona tıklayarak):</p>
+                <div class="sql-box" id="sqlBox">
+                    <button class="copy-btn" onclick="copySql()">📋 Kopyala</button>
+                    <pre id="sqlCode">-- Create page_sections table for managing homepage sections
+CREATE TABLE IF NOT EXISTS page_sections (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    section_key text UNIQUE NOT NULL,
+    section_title text NOT NULL,
+    is_visible boolean DEFAULT true,
+    display_order integer NOT NULL,
+    settings jsonb DEFAULT '{}'::jsonb,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+-- Insert default sections
+INSERT INTO page_sections (section_key, section_title, is_visible, display_order, settings) VALUES
+('hero', 'Ana Banner (Hero)', true, 1, '{
+    "title": "Hemşirelikte İnovatif Yaklaşımlar",
+    "subtitle": "HEMŞİRELİKTE İNOVATİF YAKLAŞIMLAR",
+    "tagline": "Rutinleri Kırmaya Cesaretin Var mı?",
+    "description": "Hemşirelik mesleğinde yenilikçi yaklaşımları keşfedin ve geleceğin sağlık hizmetlerini şekillendirin."
+}'::jsonb),
+
+('countdown', 'Geri Sayım', true, 2, '{
+    "show_countdown": true,
+    "countdown_title": "Etkinliğe Kalan Süre"
+}'::jsonb),
+
+('program', 'Program Akışı', true, 3, '{
+    "program_title": "Etkinlik Programı",
+    "program_items": [
+        {
+            "time": "09:00 - 09:30",
+            "title": "Kayıt ve Hoş Geldiniz Kahvaltısı",
+            "description": "Katılımcı kayıtları ve networking"
+        },
+        {
+            "time": "09:30 - 10:00",
+            "title": "Açılış Konuşması",
+            "description": "Etkinlik açılışı ve hoş geldiniz mesajı"
+        },
+        {
+            "time": "10:00 - 11:30",
+            "title": "Panel: İnovatif Hemşirelik Uygulamaları",
+            "description": "Uzman konuşmacılar ile panel tartışması"
+        },
+        {
+            "time": "11:30 - 11:45",
+            "title": "Kahve Molası",
+            "description": "Networking ve ikram"
+        },
+        {
+            "time": "11:45 - 13:00",
+            "title": "Atölye Çalışmaları",
+            "description": "Paralel oturumlarda uygulamalı çalışmalar"
+        },
+        {
+            "time": "13:00 - 14:00",
+            "title": "Öğle Yemeği",
+            "description": "Öğle yemeği ve networking"
+        },
+        {
+            "time": "14:00 - 15:30",
+            "title": "Vaka Sunumları",
+            "description": "Başarılı hemşirelik uygulamaları"
+        },
+        {
+            "time": "15:30 - 16:00",
+            "title": "Kapanış ve Sertifika Töreni",
+            "description": "Etkinlik değerlendirmesi ve sertifika dağıtımı"
+        }
+    ]
+}'::jsonb),
+
+('registration', 'Kayıt Formu', true, 4, '{
+    "form_title": "Etkinliğe Kayıt Olun",
+    "form_description": "Formu doldurarak etkinliğimize ücretsiz kayıt olabilirsiniz.",
+    "show_phone": true,
+    "show_institution": true,
+    "show_position": true,
+    "required_fields": ["full_name", "email", "phone", "institution", "position"]
+}'::jsonb),
+
+('location', 'Konum ve Harita', true, 5, '{
+    "location_title": "Etkinlik Konumu",
+    "location_name": "S.B.Ü Mehmet Akif İnan E.A.H",
+    "location_detail": "Ana Bina Konferans Salonu",
+    "address": "Şanlıurfa",
+    "map_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3195.5447217!2d38.7889!3d37.1591!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDA5JzMyLjgiTiAzOMKwNDcnMjAuMCJF!5e0!3m2!1str!2str!4v1234567890"
+}'::jsonb),
+
+('footer', 'Alt Bilgi (Footer)', true, 6, '{
+    "footer_text": "© 2025 Hemşirelikte İnovatif Yaklaşımlar. Tüm hakları saklıdır.",
+    "show_social_media": false,
+    "social_links": {}
+}'::jsonb);
+
+-- Add index for faster ordering queries
+CREATE INDEX idx_page_sections_order ON page_sections(display_order);
+
+-- Add trigger to update updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_page_sections_updated_at 
+    BEFORE UPDATE ON page_sections 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();</pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>
+                    <span class="step-number">3</span>
+                    SQL'i Yapıştırın ve Çalıştırın
+                </h3>
+                <p>SQL Editor'de:</p>
+                <ul style="margin-left: 20px; color: #4a5568; line-height: 1.8;">
+                    <li>Kopyaladığınız SQL kodunu editöre yapıştırın</li>
+                    <li>Sağ alt köşedeki <strong>"RUN"</strong> veya <strong>"Ctrl + Enter"</strong> tuşuna basın</li>
+                    <li>"Success" mesajını bekleyin</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h3>
+                    <span class="step-number">4</span>
+                    Uygulamayı Test Edin
+                </h3>
+                <p>Migration başarıyla çalıştıktan sonra:</p>
+                <ul style="margin-left: 20px; color: #4a5568; line-height: 1.8;">
+                    <li>Admin Dashboard'a gidin</li>
+                    <li><strong>"Sayfa Düzenleyici"</strong> tab'ına tıklayın</li>
+                    <li>Bölümleri görecek ve düzenleyebileceksiniz</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="warning-note">
+            <strong>⚠️ Not:</strong> Eğer "table already exists" hatası alırsanız, bu normaldir ve migration zaten
+            çalıştırılmış demektir. Bir şey yapmanıza gerek yok.
+        </div>
+
+        <div class="success-note">
+            <strong>✅ Tamamlandı mı?</strong> Admin panelde "Sayfa Düzenleyici" tab'ını görüyorsanız her şey hazır!
+            Artık ana sayfadaki tüm bölümleri sürükleyip bırakarak sıralayabilir, içeriklerini düzenleyebilir ve
+            göster/gizle yapabilirsiniz.
+        </div>
+    </div>
+
+    <script>
+        function copySql() {
+            const sqlCode = document.getElementById('sqlCode').textContent;
+            navigator.clipboard.writeText(sqlCode).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Kopyalandı!';
+                btn.classList.add('copied');
+
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+
+</html>
