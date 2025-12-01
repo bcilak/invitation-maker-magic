@@ -14,7 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Download, Search, Loader2, Users, Mail, Building, Settings, LogOut, Calendar, MapPin, Layout, Eye, EyeOff, GripVertical, Save, Plus, Trash2, Image, Edit, ExternalLink, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Download, Search, Loader2, Users, Mail, Building, Settings, LogOut, Calendar, MapPin, Layout, Eye, EyeOff, GripVertical, Save, Plus, Trash2, Image, Edit, ExternalLink, CheckCircle2, Clock, XCircle, Palette, Sparkles, ArrowUpDown, Monitor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,6 +24,7 @@ import { PersonalInvitation } from "@/components/PersonalInvitation";
 import { PosterManager } from "@/components/PosterManager";
 import { EventSelector } from "@/components/EventSelector";
 import EventEditor from "@/components/EventEditor";
+import { PageSectionEditor } from "@/components/PageSectionEditor";
 
 interface Event {
     id: string;
@@ -1078,417 +1079,192 @@ export default function AdminDashboard() {
                             onEventChange={handleEventChange}
                         />
 
-                        <Card className="p-8 mt-6">
-                            <div className="mb-6">
-                                <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
-                                    <Layout className="w-6 h-6" />
-                                    Sayfa Bölümleri Yönetimi
-                                </h2>
-                                <p className="text-muted-foreground">
-                                    Ana sayfadaki bölümleri sürükleyerek sıralayabilir, görünürlüğünü değiştirebilir ve içeriklerini düzenleyebilirsiniz.
-                                </p>
+                        {/* Page Builder Header */}
+                        <Card className="p-6 mt-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-xl bg-primary/10">
+                                        <Layout className="w-8 h-8 text-primary" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold flex items-center gap-2">
+                                            Sayfa Düzenleyici
+                                            <Badge variant="secondary" className="ml-2">
+                                                <Sparkles className="w-3 h-3 mr-1" />
+                                                Gelişmiş
+                                            </Badge>
+                                        </h2>
+                                        <p className="text-muted-foreground">
+                                            Etkinlik sayfanızı tamamen özelleştirin • Sürükle & Bırak • Canlı Önizleme
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    {selectedEventId && (
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                                const event = events.find(e => e.id === selectedEventId);
+                                                if (event) window.open(`/event/${event.slug}`, '_blank');
+                                            }}
+                                        >
+                                            <Monitor className="w-4 h-4 mr-2" />
+                                            Canlı Önizle
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Quick Stats */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                            <Card className="p-4 text-center">
+                                <div className="text-3xl font-bold text-primary">{pageSections.length}</div>
+                                <div className="text-sm text-muted-foreground">Toplam Bölüm</div>
+                            </Card>
+                            <Card className="p-4 text-center">
+                                <div className="text-3xl font-bold text-green-600">
+                                    {pageSections.filter(s => s.is_visible).length}
+                                </div>
+                                <div className="text-sm text-muted-foreground">Görünür</div>
+                            </Card>
+                            <Card className="p-4 text-center">
+                                <div className="text-3xl font-bold text-gray-400">
+                                    {pageSections.filter(s => !s.is_visible).length}
+                                </div>
+                                <div className="text-sm text-muted-foreground">Gizli</div>
+                            </Card>
+                            <Card className="p-4 text-center">
+                                <div className="text-3xl font-bold text-accent">
+                                    {pageSections.filter(s => Object.keys(s.settings || {}).length > 0).length}
+                                </div>
+                                <div className="text-sm text-muted-foreground">Özelleştirilmiş</div>
+                            </Card>
+                        </div>
+
+                        {/* Sections List */}
+                        <Card className="p-6 mt-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2">
+                                    <ArrowUpDown className="w-5 h-5 text-muted-foreground" />
+                                    <span className="font-medium">Bölüm Sıralaması</span>
+                                    <span className="text-sm text-muted-foreground">(Sürükleyerek sıralayın)</span>
+                                </div>
                             </div>
 
                             {pageSections.length === 0 ? (
-                                <div className="text-center py-12">
+                                <div className="text-center py-12 border-2 border-dashed rounded-xl">
                                     <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
                                     <p className="text-muted-foreground">
-                                        Bölümler yükleniyor veya migration dosyası henüz çalıştırılmadı.
+                                        Bölümler yükleniyor...
                                     </p>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
-                                    {pageSections.map((section) => (
-                                        <Card
-                                            key={section.id}
-                                            className={`p-4 transition-all ${draggedItem?.id === section.id ? "opacity-50" : ""
+                                <div className="space-y-3">
+                                    {pageSections.map((section, index) => {
+                                        const sectionIcons: Record<string, any> = {
+                                            hero: Image,
+                                            countdown: Clock,
+                                            program: Calendar,
+                                            registration: Users,
+                                            location: MapPin,
+                                            footer: Layout,
+                                        };
+                                        const SectionIcon = sectionIcons[section.section_key] || Layout;
+                                        const hasCustomSettings = Object.keys(section.settings || {}).length > 0;
+
+                                        return (
+                                            <Card
+                                                key={section.id}
+                                                className={`p-4 transition-all duration-200 hover:shadow-md cursor-move border-2 ${
+                                                    draggedItem?.id === section.id 
+                                                        ? "opacity-50 border-primary border-dashed" 
+                                                        : section.is_visible 
+                                                            ? "border-transparent hover:border-primary/30" 
+                                                            : "border-transparent bg-muted/50"
                                                 }`}
-                                            draggable
-                                            onDragStart={() => handleDragStart(section)}
-                                            onDragOver={handleDragOver}
-                                            onDrop={() => handleDrop(section)}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className="cursor-move">
-                                                    <GripVertical className="w-5 h-5 text-muted-foreground" />
-                                                </div>
-
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="font-semibold text-lg">
-                                                            {section.section_title}
-                                                        </span>
-                                                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                                                            Sıra: {section.display_order}
-                                                        </span>
+                                                draggable
+                                                onDragStart={() => handleDragStart(section)}
+                                                onDragOver={handleDragOver}
+                                                onDrop={() => handleDrop(section)}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    {/* Drag Handle */}
+                                                    <div className="p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                                                        <GripVertical className="w-5 h-5 text-muted-foreground" />
                                                     </div>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {section.section_key}
-                                                    </p>
-                                                </div>
 
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <Switch
-                                                            checked={section.is_visible}
-                                                            onCheckedChange={() => handleSectionVisibilityToggle(section)}
-                                                        />
-                                                        <span className="text-sm">
+                                                    {/* Section Icon */}
+                                                    <div className={`p-3 rounded-xl ${section.is_visible ? 'bg-primary/10' : 'bg-muted'}`}>
+                                                        <SectionIcon className={`w-5 h-5 ${section.is_visible ? 'text-primary' : 'text-muted-foreground'}`} />
+                                                    </div>
+
+                                                    {/* Section Info */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className={`font-semibold text-lg ${!section.is_visible ? 'text-muted-foreground' : ''}`}>
+                                                                {section.section_title}
+                                                            </span>
+                                                            <Badge variant="outline" className="font-mono text-xs">
+                                                                #{section.display_order}
+                                                            </Badge>
+                                                            {hasCustomSettings && (
+                                                                <Badge variant="secondary" className="gap-1">
+                                                                    <Palette className="w-3 h-3" />
+                                                                    Özel
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground truncate">
+                                                            {section.section_key} bölümü
+                                                            {hasCustomSettings && ` • ${Object.keys(section.settings).length} ayar`}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Actions */}
+                                                    <div className="flex items-center gap-3">
+                                                        {/* Visibility Toggle */}
+                                                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
+                                                            <Switch
+                                                                checked={section.is_visible}
+                                                                onCheckedChange={() => handleSectionVisibilityToggle(section)}
+                                                                aria-label={`${section.section_title} görünürlüğü`}
+                                                            />
                                                             {section.is_visible ? (
                                                                 <Eye className="w-4 h-4 text-green-600" />
                                                             ) : (
                                                                 <EyeOff className="w-4 h-4 text-gray-400" />
                                                             )}
-                                                        </span>
-                                                    </div>
+                                                        </div>
 
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setEditingSection(section)}
-                                                    >
-                                                        <Settings className="w-4 h-4 mr-2" />
-                                                        Düzenle
-                                                    </Button>
+                                                        {/* Edit Button */}
+                                                        <Button
+                                                            variant="default"
+                                                            size="sm"
+                                                            onClick={() => setEditingSection(section)}
+                                                            className="gap-2"
+                                                        >
+                                                            <Settings className="w-4 h-4" />
+                                                            Düzenle
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Card>
-                                    ))}
+                                            </Card>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </Card>
 
-                        {/* Section Editor Modal */}
+                        {/* Section Editor */}
                         {editingSection && (
-                            <Card className="mt-6 p-8">
-                                <div className="mb-6">
-                                    <h3 className="text-xl font-bold mb-2">
-                                        {editingSection.section_title} - Düzenle
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        Bölüm ayarlarını düzenleyin
-                                    </p>
-                                </div>
-
-                                {/* Hero Section Settings */}
-                                {editingSection.section_key === "hero" && (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <Label htmlFor="hero-title">Başlık</Label>
-                                            <Input
-                                                id="hero-title"
-                                                value={editingSection.settings.title || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: { ...editingSection.settings, title: e.target.value },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="hero-subtitle">Alt Başlık</Label>
-                                            <Input
-                                                id="hero-subtitle"
-                                                value={editingSection.settings.subtitle || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: { ...editingSection.settings, subtitle: e.target.value },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="hero-tagline">Slogan</Label>
-                                            <Input
-                                                id="hero-tagline"
-                                                value={editingSection.settings.tagline || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: { ...editingSection.settings, tagline: e.target.value },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="hero-description">Açıklama</Label>
-                                            <Textarea
-                                                id="hero-description"
-                                                value={editingSection.settings.description || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: { ...editingSection.settings, description: e.target.value },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Countdown Section Settings */}
-                                {editingSection.section_key === "countdown" && (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <Label htmlFor="countdown-title">Geri Sayım Başlığı</Label>
-                                            <Input
-                                                id="countdown-title"
-                                                value={editingSection.settings.countdown_title || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: {
-                                                            ...editingSection.settings,
-                                                            countdown_title: e.target.value,
-                                                        },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Program Section Settings */}
-                                {editingSection.section_key === "program" && (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <Label htmlFor="program-title">Program Başlığı</Label>
-                                            <Input
-                                                id="program-title"
-                                                value={editingSection.settings.program_title || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: {
-                                                            ...editingSection.settings,
-                                                            program_title: e.target.value,
-                                                        },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <Label>Program Maddeleri</Label>
-                                                <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    onClick={() => addProgramItem(editingSection)}
-                                                >
-                                                    <Plus className="w-4 h-4 mr-2" />
-                                                    Yeni Madde Ekle
-                                                </Button>
-                                            </div>
-
-                                            {(editingSection.settings.program_items || []).map((item: ProgramItem, index: number) => (
-                                                <Card key={index} className="p-4">
-                                                    <div className="space-y-3">
-                                                        <div className="flex items-center justify-between">
-                                                            <Label>Program Maddesi {index + 1}</Label>
-                                                            <Button
-                                                                type="button"
-                                                                variant="destructive"
-                                                                size="sm"
-                                                                onClick={() => removeProgramItem(editingSection, index)}
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </Button>
-                                                        </div>
-                                                        <div>
-                                                            <Label>Saat</Label>
-                                                            <Input
-                                                                value={item.time}
-                                                                onChange={(e) =>
-                                                                    updateProgramItem(editingSection, index, "time", e.target.value)
-                                                                }
-                                                                placeholder="09:00 - 10:00"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <Label>Başlık</Label>
-                                                            <Input
-                                                                value={item.title}
-                                                                onChange={(e) =>
-                                                                    updateProgramItem(editingSection, index, "title", e.target.value)
-                                                                }
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <Label>Açıklama</Label>
-                                                            <Textarea
-                                                                value={item.description}
-                                                                onChange={(e) =>
-                                                                    updateProgramItem(editingSection, index, "description", e.target.value)
-                                                                }
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </Card>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Registration Form Settings */}
-                                {editingSection.section_key === "registration" && (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <Label htmlFor="form-title">Form Başlığı</Label>
-                                            <Input
-                                                id="form-title"
-                                                value={editingSection.settings.form_title || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: {
-                                                            ...editingSection.settings,
-                                                            form_title: e.target.value,
-                                                        },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="form-description">Form Açıklaması</Label>
-                                            <Textarea
-                                                id="form-description"
-                                                value={editingSection.settings.form_description || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: {
-                                                            ...editingSection.settings,
-                                                            form_description: e.target.value,
-                                                        },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Location Section Settings */}
-                                {editingSection.section_key === "location" && (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <Label htmlFor="location-title">Konum Başlığı</Label>
-                                            <Input
-                                                id="location-title"
-                                                value={editingSection.settings.location_title || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: {
-                                                            ...editingSection.settings,
-                                                            location_title: e.target.value,
-                                                        },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="location-name">Mekan Adı</Label>
-                                            <Input
-                                                id="location-name"
-                                                value={editingSection.settings.location_name || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: {
-                                                            ...editingSection.settings,
-                                                            location_name: e.target.value,
-                                                        },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="location-detail">Mekan Detayı</Label>
-                                            <Input
-                                                id="location-detail"
-                                                value={editingSection.settings.location_detail || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: {
-                                                            ...editingSection.settings,
-                                                            location_detail: e.target.value,
-                                                        },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="address">Adres</Label>
-                                            <Input
-                                                id="address"
-                                                value={editingSection.settings.address || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: {
-                                                            ...editingSection.settings,
-                                                            address: e.target.value,
-                                                        },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="map-embed">Google Maps Embed URL</Label>
-                                            <Textarea
-                                                id="map-embed"
-                                                value={editingSection.settings.map_embed_url || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: {
-                                                            ...editingSection.settings,
-                                                            map_embed_url: e.target.value,
-                                                        },
-                                                    })
-                                                }
-                                                placeholder="https://www.google.com/maps/embed?pb=..."
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Footer Section Settings */}
-                                {editingSection.section_key === "footer" && (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <Label htmlFor="footer-text">Footer Metni</Label>
-                                            <Input
-                                                id="footer-text"
-                                                value={editingSection.settings.footer_text || ""}
-                                                onChange={(e) =>
-                                                    setEditingSection({
-                                                        ...editingSection,
-                                                        settings: {
-                                                            ...editingSection.settings,
-                                                            footer_text: e.target.value,
-                                                        },
-                                                    })
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="flex gap-4 mt-6">
-                                    <Button onClick={() => handleSaveSectionSettings(editingSection)}>
-                                        <Save className="w-4 h-4 mr-2" />
-                                        Kaydet
-                                    </Button>
-                                    <Button variant="outline" onClick={() => setEditingSection(null)}>
-                                        İptal
-                                    </Button>
-                                </div>
-                            </Card>
+                            <div className="mt-6">
+                                <PageSectionEditor
+                                    section={editingSection}
+                                    onSave={handleSaveSectionSettings}
+                                    onCancel={() => setEditingSection(null)}
+                                />
+                            </div>
                         )}
                     </TabsContent>
 

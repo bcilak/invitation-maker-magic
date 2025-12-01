@@ -67,7 +67,7 @@ export const Countdown = ({ settings: customSettings }: CountdownProps) => {
     });
 
     return (
-        <section 
+        <section
             className="py-20 px-4 bg-gradient-to-b from-background to-secondary/30"
             aria-labelledby="countdown-title"
             id="countdown-section"
@@ -82,7 +82,7 @@ export const Countdown = ({ settings: customSettings }: CountdownProps) => {
                     </p>
                 </div>
 
-                <div 
+                <div
                     className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
                     role="timer"
                     aria-live="polite"

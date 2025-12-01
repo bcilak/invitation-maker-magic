@@ -48,7 +48,7 @@ interface ProgramScheduleProps {
 export const ProgramSchedule = ({ settings }: ProgramScheduleProps) => {
   const programItems = settings?.program_items || defaultProgramItems;
   return (
-    <section 
+    <section
       className="py-20 px-4 bg-gradient-to-b from-secondary/30 to-background"
       aria-labelledby="program-title"
       id="program-section"

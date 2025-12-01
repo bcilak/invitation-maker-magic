@@ -29,7 +29,7 @@ export const LocationMap = ({ settings: customSettings }: LocationMapProps) => {
     const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(settings.event_location + ", " + settings.event_address)}`;
 
     return (
-        <section 
+        <section
             className="py-20 px-4 bg-gradient-to-b from-secondary/30 to-background"
             aria-labelledby="location-title"
             id="location-section"

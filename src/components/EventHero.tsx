@@ -72,7 +72,7 @@ export const EventHero = ({ settings: customSettings }: EventHeroProps) => {
   });
 
   return (
-    <section 
+    <section
       className="relative min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-background to-secondary/30"
       aria-labelledby="event-title"
       role="banner"
