@@ -1,41 +1,41 @@
 import { supabase } from "@/integrations/supabase/client";
 
 interface RegistrationEmailData {
-  full_name: string;
-  email: string;
-  phone: string;
-  institution: string;
-  position: string;
-  event_title: string;
-  event_date: string;
-  event_location: string;
-  event_address: string;
-  event_url: string;
+    full_name: string;
+    email: string;
+    phone: string;
+    institution: string;
+    position: string;
+    event_title: string;
+    event_date: string;
+    event_location: string;
+    event_address: string;
+    event_url: string;
 }
 
 interface EmailResult {
-  success: boolean;
-  messageId?: string;
-  error?: string;
+    success: boolean;
+    messageId?: string;
+    error?: string;
 }
 
 /**
  * Generate registration confirmation email HTML
  */
 function generateRegistrationEmailHtml(data: RegistrationEmailData): string {
-  const eventDate = new Date(data.event_date);
-  const formattedDate = eventDate.toLocaleDateString("tr-TR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    weekday: "long",
-  });
-  const formattedTime = eventDate.toLocaleTimeString("tr-TR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+    const eventDate = new Date(data.event_date);
+    const formattedDate = eventDate.toLocaleDateString("tr-TR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        weekday: "long",
+    });
+    const formattedTime = eventDate.toLocaleTimeString("tr-TR", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
 
-  return `
+    return `
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -137,56 +137,56 @@ function generateRegistrationEmailHtml(data: RegistrationEmailData): string {
  * Send registration confirmation email via Supabase Edge Function
  */
 export async function sendRegistrationConfirmation(data: RegistrationEmailData): Promise<EmailResult> {
-  try {
-    const html = generateRegistrationEmailHtml(data);
+    try {
+        const html = generateRegistrationEmailHtml(data);
 
-    const { data: result, error } = await supabase.functions.invoke("send-email", {
-      body: {
-        type: "registration_confirmation",
-        to: data.email,
-        toName: data.full_name,
-        subject: `✅ Kayıt Onayı: ${data.event_title}`,
-        html: html,
-      },
-    });
+        const { data: result, error } = await supabase.functions.invoke("send-email", {
+            body: {
+                type: "registration_confirmation",
+                to: data.email,
+                toName: data.full_name,
+                subject: `✅ Kayıt Onayı: ${data.event_title}`,
+                html: html,
+            },
+        });
 
-    if (error) {
-      console.error("Edge function error:", error);
-      return { success: false, error: error.message };
+        if (error) {
+            console.error("Edge function error:", error);
+            return { success: false, error: error.message };
+        }
+
+        if (!result.success) {
+            return { success: false, error: result.error };
+        }
+
+        console.log("Registration email sent:", result.messageId);
+        return { success: true, messageId: result.messageId };
+    } catch (error: any) {
+        console.error("Error sending registration email:", error);
+        return { success: false, error: error.message };
     }
-
-    if (!result.success) {
-      return { success: false, error: result.error };
-    }
-
-    console.log("Registration email sent:", result.messageId);
-    return { success: true, messageId: result.messageId };
-  } catch (error: any) {
-    console.error("Error sending registration email:", error);
-    return { success: false, error: error.message };
-  }
 }
 
 /**
  * Send event reminder email
  */
 export async function sendEventReminder(
-  email: string,
-  fullName: string,
-  eventTitle: string,
-  eventDate: string,
-  eventLocation: string,
-  eventUrl: string
+    email: string,
+    fullName: string,
+    eventTitle: string,
+    eventDate: string,
+    eventLocation: string,
+    eventUrl: string
 ): Promise<EmailResult> {
-  try {
-    const date = new Date(eventDate);
-    const formattedDate = date.toLocaleDateString("tr-TR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    try {
+        const date = new Date(eventDate);
+        const formattedDate = date.toLocaleDateString("tr-TR", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
 
-    const html = `
+        const html = `
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -231,159 +231,159 @@ export async function sendEventReminder(
 </html>
     `;
 
-    const { data: result, error } = await supabase.functions.invoke("send-email", {
-      body: {
-        type: "event_reminder",
-        to: email,
-        toName: fullName,
-        subject: `⏰ Hatırlatma: ${eventTitle} - ${formattedDate}`,
-        html: html,
-      },
-    });
+        const { data: result, error } = await supabase.functions.invoke("send-email", {
+            body: {
+                type: "event_reminder",
+                to: email,
+                toName: fullName,
+                subject: `⏰ Hatırlatma: ${eventTitle} - ${formattedDate}`,
+                html: html,
+            },
+        });
 
-    if (error) {
-      return { success: false, error: error.message };
+        if (error) {
+            return { success: false, error: error.message };
+        }
+
+        return { success: result.success, messageId: result.messageId, error: result.error };
+    } catch (error: any) {
+        console.error("Error sending reminder email:", error);
+        return { success: false, error: error.message };
     }
-
-    return { success: result.success, messageId: result.messageId, error: result.error };
-  } catch (error: any) {
-    console.error("Error sending reminder email:", error);
-    return { success: false, error: error.message };
-  }
 }
 
 /**
  * Queue email for batch processing (stores in database)
  */
 export async function queueEmail(
-  type: string,
-  recipientEmail: string,
-  recipientName: string,
-  subject: string,
-  htmlContent: string,
-  eventId?: string,
-  registrationId?: string
+    type: string,
+    recipientEmail: string,
+    recipientName: string,
+    subject: string,
+    htmlContent: string,
+    eventId?: string,
+    registrationId?: string
 ): Promise<boolean> {
-  try {
-    const { error } = await supabase.from("email_notifications" as any).insert({
-      event_id: eventId,
-      registration_id: registrationId,
-      recipient_email: recipientEmail,
-      recipient_name: recipientName,
-      email_type: type,
-      subject: subject,
-      html_content: htmlContent,
-      status: "pending",
-    });
+    try {
+        const { error } = await supabase.from("email_notifications" as any).insert({
+            event_id: eventId,
+            registration_id: registrationId,
+            recipient_email: recipientEmail,
+            recipient_name: recipientName,
+            email_type: type,
+            subject: subject,
+            html_content: htmlContent,
+            status: "pending",
+        });
 
-    if (error) {
-      console.error("Error queueing email:", error);
-      return false;
+        if (error) {
+            console.error("Error queueing email:", error);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error queueing email:", error);
+        return false;
     }
-
-    return true;
-  } catch (error) {
-    console.error("Error queueing email:", error);
-    return false;
-  }
 }
 
 /**
  * Get email notification logs
  */
 export async function getEmailNotifications(eventId?: string, limit = 50) {
-  try {
-    let query = supabase
-      .from("email_notifications" as any)
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(limit);
+    try {
+        let query = supabase
+            .from("email_notifications" as any)
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(limit);
 
-    if (eventId) {
-      query = query.eq("event_id", eventId);
+        if (eventId) {
+            query = query.eq("event_id", eventId);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error("Error fetching email notifications:", error);
+            return [];
+        }
+
+        return data || [];
+    } catch (error) {
+        console.error("Error fetching email notifications:", error);
+        return [];
     }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Error fetching email notifications:", error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error("Error fetching email notifications:", error);
-    return [];
-  }
 }
 
 /**
  * Retry failed emails
  */
 export async function retryFailedEmails(): Promise<number> {
-  try {
-    const { data: pendingEmails, error: fetchError } = await supabase
-      .from("email_notifications" as any)
-      .select("*")
-      .in("status", ["pending", "failed"])
-      .lt("retry_count", 3);
+    try {
+        const { data: pendingEmails, error: fetchError } = await supabase
+            .from("email_notifications" as any)
+            .select("*")
+            .in("status", ["pending", "failed"])
+            .lt("retry_count", 3);
 
-    if (fetchError || !pendingEmails) {
-      console.error("Error fetching pending emails:", fetchError);
-      return 0;
+        if (fetchError || !pendingEmails) {
+            console.error("Error fetching pending emails:", fetchError);
+            return 0;
+        }
+
+        let successCount = 0;
+
+        for (const email of pendingEmails) {
+            const { data: result, error } = await supabase.functions.invoke("send-email", {
+                body: {
+                    type: email.email_type,
+                    to: email.recipient_email,
+                    toName: email.recipient_name,
+                    subject: email.subject,
+                    html: email.html_content,
+                },
+            });
+
+            if (!error && result?.success) {
+                await supabase
+                    .from("email_notifications" as any)
+                    .update({
+                        status: "sent",
+                        sent_at: new Date().toISOString(),
+                    })
+                    .eq("id", email.id);
+                successCount++;
+            } else {
+                await supabase
+                    .from("email_notifications" as any)
+                    .update({
+                        status: "failed",
+                        error_message: error?.message || result?.error,
+                        retry_count: (email.retry_count || 0) + 1,
+                    })
+                    .eq("id", email.id);
+            }
+        }
+
+        return successCount;
+    } catch (error) {
+        console.error("Error retrying failed emails:", error);
+        return 0;
     }
-
-    let successCount = 0;
-
-    for (const email of pendingEmails) {
-      const { data: result, error } = await supabase.functions.invoke("send-email", {
-        body: {
-          type: email.email_type,
-          to: email.recipient_email,
-          toName: email.recipient_name,
-          subject: email.subject,
-          html: email.html_content,
-        },
-      });
-
-      if (!error && result?.success) {
-        await supabase
-          .from("email_notifications" as any)
-          .update({
-            status: "sent",
-            sent_at: new Date().toISOString(),
-          })
-          .eq("id", email.id);
-        successCount++;
-      } else {
-        await supabase
-          .from("email_notifications" as any)
-          .update({
-            status: "failed",
-            error_message: error?.message || result?.error,
-            retry_count: (email.retry_count || 0) + 1,
-          })
-          .eq("id", email.id);
-      }
-    }
-
-    return successCount;
-  } catch (error) {
-    console.error("Error retrying failed emails:", error);
-    return 0;
-  }
 }
 
 /**
  * Format email template with variables
  */
 export function formatEmailTemplate(template: string, variables: Record<string, string>): string {
-  let formatted = template;
+    let formatted = template;
 
-  Object.entries(variables).forEach(([key, value]) => {
-    const regex = new RegExp(`{{${key}}}`, "g");
-    formatted = formatted.replace(regex, value);
-  });
+    Object.entries(variables).forEach(([key, value]) => {
+        const regex = new RegExp(`{{${key}}}`, "g");
+        formatted = formatted.replace(regex, value);
+    });
 
-  return formatted;
+    return formatted;
 }

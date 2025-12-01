@@ -33,8 +33,8 @@ const registrationSchema = z.object({
   phone: z.string()
     .trim()
     .transform((val) => val.replace(/[\s\-\(\)]/g, "")) // Remove spaces, dashes, parentheses
-    .refine((val) => turkishPhoneRegex.test(val), { 
-      message: "Geçerli bir Türkiye telefon numarası giriniz (5XX XXX XX XX)" 
+    .refine((val) => turkishPhoneRegex.test(val), {
+      message: "Geçerli bir Türkiye telefon numarası giriniz (5XX XXX XX XX)"
     }),
   institution: z.string()
     .trim()
@@ -88,7 +88,7 @@ export const RegistrationForm = ({ settings }: RegistrationFormProps) => {
     const timestamps: number[] = JSON.parse(stored);
     const now = Date.now();
     const validTimestamps = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW);
-    
+
     if (validTimestamps.length >= MAX_SUBMISSIONS) {
       setIsRateLimited(true);
       const oldestValid = Math.min(...validTimestamps);
@@ -148,7 +148,7 @@ export const RegistrationForm = ({ settings }: RegistrationFormProps) => {
 
       // Check for duplicate email in localStorage (same event)
       const isDuplicateInLocal = existingRegistrations.some(
-        (reg: any) => 
+        (reg: any) =>
           reg.email.toLowerCase() === data.email.toLowerCase() &&
           reg.event_id === eventId
       );

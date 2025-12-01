@@ -48,10 +48,14 @@ interface ProgramScheduleProps {
 export const ProgramSchedule = ({ settings }: ProgramScheduleProps) => {
   const programItems = settings?.program_items || defaultProgramItems;
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-secondary/30 to-background">
+    <section 
+      className="py-20 px-4 bg-gradient-to-b from-secondary/30 to-background"
+      aria-labelledby="program-title"
+      id="program-section"
+    >
       <div className="container max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <h2 id="program-title" className="text-4xl md:text-5xl font-bold mb-4">
             {settings?.program_title || "Program"} <span className="text-primary">İçeriği</span>
           </h2>
           <p className="text-xl text-muted-foreground">
@@ -59,7 +63,7 @@ export const ProgramSchedule = ({ settings }: ProgramScheduleProps) => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6" role="list" aria-label="Program içerikleri">
           {programItems.map((item: any, index: number) => {
             const Icon = item.icon || Clock;
             const hasTime = 'time' in item;
@@ -68,15 +72,16 @@ export const ProgramSchedule = ({ settings }: ProgramScheduleProps) => {
               <Card
                 key={index}
                 className="p-6 hover:shadow-[var(--shadow-elegant)] transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/30"
+                role="listitem"
               >
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-lg bg-primary/10 text-primary">
+                  <div className="p-3 rounded-lg bg-primary/10 text-primary" aria-hidden="true">
                     <Icon className="w-6 h-6" />
                   </div>
                   <div className="flex-1">
                     {hasTime && (
                       <div className="text-sm font-semibold text-primary mb-1">
-                        {item.time}
+                        <span className="sr-only">Saat: </span>{item.time}
                       </div>
                     )}
                     <h3 className="font-semibold text-lg mb-2 text-foreground">

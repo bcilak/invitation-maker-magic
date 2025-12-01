@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Users, ArrowRight, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SEO, SEOPresets } from "@/components/SEO";
+import { EventListSkeleton } from "@/components/Skeletons";
 
 interface Event {
     id: string;
@@ -193,10 +194,16 @@ const Events = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Etkinlikler yükleniyor...</p>
+            <div className="min-h-screen py-12 px-4 bg-gradient-to-b from-background to-secondary/30">
+                <SEO {...SEOPresets.home} />
+                <div className="container max-w-7xl mx-auto">
+                    <div className="text-center mb-12">
+                        <h1 className="text-4xl md:text-6xl font-bold mb-4">Etkinliklerimiz</h1>
+                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                            Etkinlikler yükleniyor...
+                        </p>
+                    </div>
+                    <EventListSkeleton count={3} />
                 </div>
             </div>
         );

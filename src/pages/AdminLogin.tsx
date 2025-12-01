@@ -184,10 +184,10 @@ export default function AdminLogin() {
             recordFailedAttempt();
 
             const attemptsLeft = MAX_LOGIN_ATTEMPTS - ((rateLimitInfo?.attempts || 0) + 1);
-            
+
             toast({
                 title: "Giriş Başarısız",
-                description: attemptsLeft > 0 
+                description: attemptsLeft > 0
                     ? `${error.message || "Kullanıcı adı veya şifre hatalı."} (${attemptsLeft} deneme hakkı kaldı)`
                     : "Çok fazla başarısız deneme. Hesabınız 15 dakika kilitlendi.",
                 variant: "destructive",

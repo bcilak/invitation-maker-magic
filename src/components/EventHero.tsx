@@ -72,7 +72,11 @@ export const EventHero = ({ settings: customSettings }: EventHeroProps) => {
   });
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-background to-secondary/30">
+    <section 
+      className="relative min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-background to-secondary/30"
+      aria-labelledby="event-title"
+      role="banner"
+    >
       <div className="container max-w-7xl">
         <div className="grid lg:grid-cols-2 gap-8 items-center">
           {/* Poster Column */}
@@ -81,9 +85,10 @@ export const EventHero = ({ settings: customSettings }: EventHeroProps) => {
               <div className="relative">
                 <img
                   src={posterUrl}
-                  alt="Etkinlik Afişi"
+                  alt={`${customSettings?.title || settings.event_title} etkinlik afişi`}
                   className="w-full rounded-2xl shadow-2xl object-contain"
                   style={{ maxHeight: "700px" }}
+                  loading="lazy"
                 />
               </div>
             </div>
@@ -95,7 +100,7 @@ export const EventHero = ({ settings: customSettings }: EventHeroProps) => {
               <span className="text-accent font-semibold">{customSettings?.title || settings.event_title}</span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+            <h1 id="event-title" className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
               {(customSettings?.tagline || settings.event_tagline).split(" ").slice(0, 2).join(" ")}{" "}
               <span className="text-primary">{(customSettings?.tagline || settings.event_tagline).split(" ").slice(2).join(" ")}</span>
             </h1>
@@ -110,21 +115,21 @@ export const EventHero = ({ settings: customSettings }: EventHeroProps) => {
               </p>
             )}
 
-            <Card className="p-8 shadow-[var(--shadow-elegant)] bg-card/80 backdrop-blur">
+            <Card className="p-8 shadow-[var(--shadow-elegant)] bg-card/80 backdrop-blur" role="region" aria-label="Etkinlik bilgileri">
               <div className="space-y-4">
                 <div className="flex items-center gap-3 text-lg">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  <span className="font-semibold">{formattedDate}</span>
+                  <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
+                  <span className="font-semibold"><span className="sr-only">Tarih: </span>{formattedDate}</span>
                 </div>
 
                 <div className="flex items-center gap-3 text-lg">
-                  <Clock className="w-5 h-5 text-primary" />
-                  <span>Saat: {formattedTime}</span>
+                  <Clock className="w-5 h-5 text-primary" aria-hidden="true" />
+                  <span><span className="sr-only">Saat: </span>Saat: {formattedTime}</span>
                 </div>
 
                 <div className="flex items-center gap-3 text-lg">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <span>{settings.event_location}</span>
+                  <MapPin className="w-5 h-5 text-primary" aria-hidden="true" />
+                  <span><span className="sr-only">Konum: </span>{settings.event_location}</span>
                 </div>
 
                 <p className="text-sm text-muted-foreground pt-2">

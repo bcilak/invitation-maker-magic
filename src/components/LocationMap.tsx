@@ -29,10 +29,14 @@ export const LocationMap = ({ settings: customSettings }: LocationMapProps) => {
     const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(settings.event_location + ", " + settings.event_address)}`;
 
     return (
-        <section className="py-20 px-4 bg-gradient-to-b from-secondary/30 to-background">
+        <section 
+            className="py-20 px-4 bg-gradient-to-b from-secondary/30 to-background"
+            aria-labelledby="location-title"
+            id="location-section"
+        >
             <div className="container max-w-6xl mx-auto">
                 <div className="text-center mb-12">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                    <h2 id="location-title" className="text-4xl md:text-5xl font-bold mb-4">
                         {customSettings?.location_title || "Etkinlik"} <span className="text-primary">Konumu</span>
                     </h2>
                     <p className="text-xl text-muted-foreground mb-2">{settings.event_location}</p>
@@ -49,7 +53,8 @@ export const LocationMap = ({ settings: customSettings }: LocationMapProps) => {
                             allowFullScreen
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
-                            title="Etkinlik Konumu"
+                            title={`${settings.event_location} harita görünümü`}
+                            aria-label="Google Haritalar - Etkinlik konumu"
                         />
                     </div>
 
@@ -71,8 +76,9 @@ export const LocationMap = ({ settings: customSettings }: LocationMapProps) => {
                                 size="lg"
                                 onClick={() => window.open(directionsUrl, "_blank")}
                                 className="flex-shrink-0"
+                                aria-label={`${settings.event_location} için Google Haritalar'da yol tarifi al`}
                             >
-                                <Navigation className="mr-2 h-4 w-4" />
+                                <Navigation className="mr-2 h-4 w-4" aria-hidden="true" />
                                 Yol Tarifi Al
                             </Button>
                         </div>

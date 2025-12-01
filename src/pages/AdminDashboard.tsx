@@ -635,7 +635,7 @@ export default function AdminDashboard() {
             localStorage.removeItem("admin_session");
             localStorage.removeItem("admin_selected_event");
             localStorage.removeItem("new_event_created");
-            
+
             // Clear rate limiting
             localStorage.removeItem("registration_rate_limit");
 

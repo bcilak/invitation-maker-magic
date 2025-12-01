@@ -10,6 +10,7 @@ import { EventFooter } from "@/components/EventFooter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { EventHeroSkeleton } from "@/components/Skeletons";
 
 interface PageSection {
     id: string;
@@ -180,11 +181,9 @@ const EventDetail = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Etkinlik yükleniyor...</p>
-                </div>
+            <div className="min-h-screen" role="status" aria-label="Etkinlik yükleniyor">
+                <SEO title="Yükleniyor..." />
+                <EventHeroSkeleton />
             </div>
         );
     }

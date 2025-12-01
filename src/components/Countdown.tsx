@@ -67,10 +67,14 @@ export const Countdown = ({ settings: customSettings }: CountdownProps) => {
     });
 
     return (
-        <section className="py-20 px-4 bg-gradient-to-b from-background to-secondary/30">
+        <section 
+            className="py-20 px-4 bg-gradient-to-b from-background to-secondary/30"
+            aria-labelledby="countdown-title"
+            id="countdown-section"
+        >
             <div className="container max-w-6xl mx-auto">
                 <div className="text-center mb-12">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                    <h2 id="countdown-title" className="text-4xl md:text-5xl font-bold mb-4">
                         {customSettings?.countdown_title || "Etkinliğe"} <span className="text-primary">Kalan Süre</span>
                     </h2>
                     <p className="text-xl text-muted-foreground">
@@ -78,18 +82,25 @@ export const Countdown = ({ settings: customSettings }: CountdownProps) => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                <div 
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
+                    role="timer"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    aria-label={`Etkinliğe ${timeLeft.days} gün, ${timeLeft.hours} saat, ${timeLeft.minutes} dakika, ${timeLeft.seconds} saniye kaldı`}
+                >
                     {timeUnits.map((unit) => (
                         <Card
                             key={unit.label}
                             className="p-6 text-center shadow-[var(--shadow-elegant)] hover:scale-105 transition-transform duration-300"
                         >
-                            <div className="text-5xl md:text-6xl font-bold text-primary mb-2">
+                            <div className="text-5xl md:text-6xl font-bold text-primary mb-2" aria-hidden="true">
                                 {unit.value.toString().padStart(2, "0")}
                             </div>
                             <div className="text-lg text-muted-foreground font-semibold">
                                 {unit.label}
                             </div>
+                            <span className="sr-only">{unit.value} {unit.label}</span>
                         </Card>
                     ))}
                 </div>
