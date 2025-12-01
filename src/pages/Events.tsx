@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Users, ArrowRight, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SEO, SEOPresets } from "@/components/SEO";
 
 interface Event {
     id: string;
@@ -203,6 +204,7 @@ const Events = () => {
 
     return (
         <div className="min-h-screen py-12 px-4 bg-gradient-to-b from-background to-secondary/30">
+            <SEO {...SEOPresets.home} />
             <div className="container max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-12">

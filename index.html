@@ -1,24 +1,61 @@
 <!doctype html>
-<html lang="en">
+<html lang="tr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hemşirelikte İnovatif Yaklaşımlar - 19 Kasım 2025</title>
-    <meta name="description" content="Rutinleri Kırmaya Cesaretin Var mı? Hemşirelikte inovatif yaklaşımlar etkinliği - 19 Kasım 2025, S.B.Ü Mehmet Akif İnan E.A.H" />
-    <meta name="author" content="T.C. Sağlık Bakanlığı" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+    <title>Etkinlik Yönetim Sistemi</title>
+    <meta name="description" content="Profesyonel etkinlik davetiye ve kayıt yönetim sistemi. Etkinliklerinizi kolayca oluşturun, yönetin ve katılımcılarınızı takip edin." />
+    <meta name="author" content="Etkinlik Yönetimi" />
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Etkinlik" />
 
-    <meta property="og:title" content="Hemşirelikte İnovatif Yaklaşımlar" />
-    <meta property="og:description" content="Rutinleri Kırmaya Cesaretin Var mı? Hemşirelikte inovatif yaklaşımlar etkinliği - 19 Kasım 2025" />
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:title" content="Etkinlik Yönetim Sistemi" />
+    <meta property="og:description" content="Profesyonel etkinlik davetiye ve kayıt yönetim sistemi" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:locale" content="tr_TR" />
+    <meta property="og:site_name" content="Etkinlik Yönetimi" />
 
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:title" content="Etkinlik Yönetim Sistemi" />
+    <meta name="twitter:description" content="Profesyonel etkinlik davetiye ve kayıt yönetim sistemi" />
+    <meta name="twitter:image" content="/og-image.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered:', registration.scope);
+            })
+            .catch((error) => {
+              console.log('SW registration failed:', error);
+            });
+        });
+      }
+    </script>
+    <noscript>
+      <div style="padding: 20px; text-align: center; background: #f4f4f5;">
+        <h1>JavaScript Gerekli</h1>
+        <p>Bu uygulamayı kullanabilmek için JavaScript'i etkinleştirmeniz gerekmektedir.</p>
+      </div>
+    </noscript>
   </body>
 </html>

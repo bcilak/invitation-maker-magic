@@ -631,8 +631,13 @@ export default function AdminDashboard() {
             // Sign out from Supabase
             await supabase.auth.signOut();
 
-            // Clear localStorage
+            // Clear all admin-related localStorage items
             localStorage.removeItem("admin_session");
+            localStorage.removeItem("admin_selected_event");
+            localStorage.removeItem("new_event_created");
+            
+            // Clear rate limiting
+            localStorage.removeItem("registration_rate_limit");
 
             toast({
                 title: "Çıkış Yapıldı",
@@ -644,6 +649,7 @@ export default function AdminDashboard() {
             console.error("Logout error:", error);
             // Even if there's an error, clear local data and redirect
             localStorage.removeItem("admin_session");
+            localStorage.removeItem("admin_selected_event");
             navigate("/admin/login");
         }
     };

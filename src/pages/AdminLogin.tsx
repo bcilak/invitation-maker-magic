@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,17 +6,122 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Shield, Lock, User } from "lucide-react";
+import { Loader2, Shield, Lock, User, AlertTriangle } from "lucide-react";
+import { SEO, SEOPresets } from "@/components/SEO";
+
+// Rate limiting configuration
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_KEY = "admin_login_rate_limit";
+
+interface RateLimitData {
+    attempts: number;
+    firstAttemptAt: number;
+    lockedUntil?: number;
+}
 
 export default function AdminLogin() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitData | null>(null);
+    const [remainingTime, setRemainingTime] = useState<number>(0);
     const { toast } = useToast();
     const navigate = useNavigate();
 
+    // Check rate limit on mount and setup countdown
+    useEffect(() => {
+        checkRateLimit();
+        const interval = setInterval(() => {
+            checkRateLimit();
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const checkRateLimit = () => {
+        const stored = localStorage.getItem(RATE_LIMIT_KEY);
+        if (!stored) {
+            setRateLimitInfo(null);
+            setRemainingTime(0);
+            return;
+        }
+
+        const data: RateLimitData = JSON.parse(stored);
+        const now = Date.now();
+
+        // Check if lockout has expired
+        if (data.lockedUntil && data.lockedUntil <= now) {
+            localStorage.removeItem(RATE_LIMIT_KEY);
+            setRateLimitInfo(null);
+            setRemainingTime(0);
+            return;
+        }
+
+        // Check if first attempt window has expired (reset after 15 min of inactivity)
+        if (!data.lockedUntil && (now - data.firstAttemptAt) > LOCKOUT_DURATION_MS) {
+            localStorage.removeItem(RATE_LIMIT_KEY);
+            setRateLimitInfo(null);
+            setRemainingTime(0);
+            return;
+        }
+
+        setRateLimitInfo(data);
+        if (data.lockedUntil) {
+            setRemainingTime(Math.ceil((data.lockedUntil - now) / 1000));
+        }
+    };
+
+    const recordFailedAttempt = () => {
+        const stored = localStorage.getItem(RATE_LIMIT_KEY);
+        const now = Date.now();
+        let data: RateLimitData;
+
+        if (stored) {
+            data = JSON.parse(stored);
+            data.attempts += 1;
+        } else {
+            data = {
+                attempts: 1,
+                firstAttemptAt: now,
+            };
+        }
+
+        // Lock if max attempts reached
+        if (data.attempts >= MAX_LOGIN_ATTEMPTS) {
+            data.lockedUntil = now + LOCKOUT_DURATION_MS;
+        }
+
+        localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(data));
+        setRateLimitInfo(data);
+    };
+
+    const clearRateLimit = () => {
+        localStorage.removeItem(RATE_LIMIT_KEY);
+        setRateLimitInfo(null);
+        setRemainingTime(0);
+    };
+
+    const isLocked = rateLimitInfo?.lockedUntil && rateLimitInfo.lockedUntil > Date.now();
+
+    const formatTime = (seconds: number): string => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Check if locked
+        if (isLocked) {
+            toast({
+                title: "Hesap Kilitli",
+                description: `Çok fazla başarısız deneme. ${formatTime(remainingTime)} sonra tekrar deneyin.`,
+                variant: "destructive",
+            });
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -62,6 +167,9 @@ export default function AdminLogin() {
                 supabase_session: true
             }));
 
+            // Clear rate limit on successful login
+            clearRateLimit();
+
             toast({
                 title: "Giriş Başarılı! 🎉",
                 description: `Hoş geldiniz, ${adminProfile.full_name}`,
@@ -71,9 +179,17 @@ export default function AdminLogin() {
 
         } catch (error: any) {
             console.error("Login error:", error);
+
+            // Record failed attempt for rate limiting
+            recordFailedAttempt();
+
+            const attemptsLeft = MAX_LOGIN_ATTEMPTS - ((rateLimitInfo?.attempts || 0) + 1);
+            
             toast({
                 title: "Giriş Başarısız",
-                description: error.message || "Kullanıcı adı veya şifre hatalı.",
+                description: attemptsLeft > 0 
+                    ? `${error.message || "Kullanıcı adı veya şifre hatalı."} (${attemptsLeft} deneme hakkı kaldı)`
+                    : "Çok fazla başarısız deneme. Hesabınız 15 dakika kilitlendi.",
                 variant: "destructive",
             });
         } finally {
@@ -83,6 +199,7 @@ export default function AdminLogin() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-secondary/30 px-4">
+            <SEO {...SEOPresets.adminLogin} />
             <Card className="w-full max-w-md p-8 shadow-[var(--shadow-elegant)]">
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
@@ -91,6 +208,28 @@ export default function AdminLogin() {
                     <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
                     <p className="text-muted-foreground">Etkinlik yönetim sistemine giriş</p>
                 </div>
+
+                {/* Lockout Warning */}
+                {isLocked && (
+                    <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-3">
+                        <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" />
+                        <div>
+                            <p className="font-medium text-destructive">Hesap Geçici Olarak Kilitli</p>
+                            <p className="text-sm text-muted-foreground">
+                                Çok fazla başarısız deneme. {formatTime(remainingTime)} sonra tekrar deneyin.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Attempts Warning */}
+                {rateLimitInfo && !isLocked && rateLimitInfo.attempts > 0 && (
+                    <div className="mb-6 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-center">
+                        <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                            {MAX_LOGIN_ATTEMPTS - rateLimitInfo.attempts} deneme hakkı kaldı
+                        </p>
+                    </div>
+                )}
 
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>
@@ -105,7 +244,9 @@ export default function AdminLogin() {
                                 placeholder="admin@example.com"
                                 className="pl-10"
                                 required
+                                disabled={!!isLocked}
                                 autoComplete="username"
+                                aria-describedby={isLocked ? "lockout-message" : undefined}
                             />
                         </div>
                     </div>
@@ -122,6 +263,7 @@ export default function AdminLogin() {
                                 placeholder="••••••••"
                                 className="pl-10"
                                 required
+                                disabled={!!isLocked}
                                 autoComplete="current-password"
                             />
                         </div>
@@ -131,12 +273,17 @@ export default function AdminLogin() {
                         type="submit"
                         className="w-full"
                         size="lg"
-                        disabled={isLoading}
+                        disabled={isLoading || !!isLocked}
                     >
                         {isLoading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Giriş Yapılıyor...
+                            </>
+                        ) : isLocked ? (
+                            <>
+                                <Lock className="mr-2 h-4 w-4" />
+                                Kilitli ({formatTime(remainingTime)})
                             </>
                         ) : (
                             "Giriş Yap"

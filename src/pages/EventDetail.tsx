@@ -9,6 +9,7 @@ import { LocationMap } from "@/components/LocationMap";
 import { EventFooter } from "@/components/EventFooter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 interface PageSection {
     id: string;
@@ -191,6 +192,7 @@ const EventDetail = () => {
     if (notFound || !event) {
         return (
             <div className="flex items-center justify-center min-h-screen px-4">
+                <SEO title="Etkinlik Bulunamadı" noindex />
                 <div className="text-center max-w-md">
                     <h1 className="text-4xl font-bold mb-4">Etkinlik Bulunamadı</h1>
                     <p className="text-muted-foreground mb-6">
@@ -211,6 +213,14 @@ const EventDetail = () => {
     if (isPast) {
         return (
             <div className="min-h-screen">
+                <SEO
+                    title={event.title}
+                    description={event.tagline || event.description || `${event.title} etkinliği sona erdi.`}
+                    type="event"
+                    eventDate={event.event_date}
+                    eventLocation={event.event_location}
+                    image={event.poster_url || undefined}
+                />
                 {/* Back to Events Button - Floating */}
                 <div className="fixed top-4 left-4 z-50">
                     <Button
@@ -246,6 +256,14 @@ const EventDetail = () => {
 
     return (
         <div className="min-h-screen">
+            <SEO
+                title={event.title}
+                description={event.tagline || event.description || `${event.title} etkinliğine kayıt olun.`}
+                type="event"
+                eventDate={event.event_date}
+                eventLocation={event.event_location}
+                image={event.poster_url || undefined}
+            />
             {/* Back to Events Button - Floating */}
             <div className="fixed top-4 left-4 z-50">
                 <Button
