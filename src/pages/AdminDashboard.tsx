@@ -772,40 +772,49 @@ export default function AdminDashboard() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-background to-secondary/30 py-12 px-4">
-            <div className="container max-w-7xl mx-auto">
-                <div className="flex items-center justify-between mb-8">
+            <div className="container max-w-7xl mx-auto px-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
                     <div>
-                        <h1 className="text-4xl font-bold mb-2">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
                             Admin <span className="text-primary">Panel</span>
                         </h1>
-                        <p className="text-muted-foreground">Etkinlik Kayıt Yönetimi</p>
+                        <p className="text-sm md:text-base text-muted-foreground">Etkinlik Kayıt Yönetimi</p>
                     </div>
-                    <Button variant="outline" onClick={handleLogout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Çıkış Yap
+                    <Button variant="outline" onClick={handleLogout} size="sm" className="sm:size-default">
+                        <LogOut className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="text-xs sm:text-sm">Çıkış Yap</span>
                     </Button>
                 </div>
 
                 <Tabs defaultValue="registrations" className="space-y-6">
-                    <TabsList className="grid w-full max-w-6xl grid-cols-6">
-                        <TabsTrigger value="events">
-                            <Calendar className="w-4 h-4 mr-2" />
-                            Etkinlikler
+                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 h-auto">
+                        <TabsTrigger value="events" className="text-xs sm:text-sm">
+                            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">Etkinlikler</span>
+                            <span className="sm:hidden">Etkinlik</span>
                         </TabsTrigger>
-                        <TabsTrigger value="registrations">Kayıtlar</TabsTrigger>
-                        <TabsTrigger value="qr-scanner">
-                            <ScanLine className="w-4 h-4 mr-2" />
-                            QR Okuyucu
+                        <TabsTrigger value="registrations" className="text-xs sm:text-sm">
+                            <span className="hidden sm:inline">Kayıtlar</span>
+                            <span className="sm:hidden">Kayıt</span>
                         </TabsTrigger>
-                        <TabsTrigger value="page-builder">
-                            <Layout className="w-4 h-4 mr-2" />
-                            Sayfa Düzenleyici
+                        <TabsTrigger value="qr-scanner" className="text-xs sm:text-sm">
+                            <ScanLine className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                            QR
                         </TabsTrigger>
-                        <TabsTrigger value="invitation">
-                            <Image className="w-4 h-4 mr-2" />
-                            Davetiye Oluştur
+                        <TabsTrigger value="page-builder" className="text-xs sm:text-sm">
+                            <Layout className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">Sayfa</span>
+                            <span className="sm:hidden">Sayfa</span>
                         </TabsTrigger>
-                        <TabsTrigger value="settings">Etkinlik Ayarları</TabsTrigger>
+                        <TabsTrigger value="invitation" className="text-xs sm:text-sm">
+                            <Image className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">Davetiye</span>
+                            <span className="sm:hidden">Davet</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="settings" className="text-xs sm:text-sm">
+                            <span className="hidden sm:inline">Ayarlar</span>
+                            <span className="sm:hidden">Ayar</span>
+                        </TabsTrigger>
                     </TabsList>
 
                     {/* Events Tab */}

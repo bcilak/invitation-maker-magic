@@ -45,7 +45,11 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
         }
 
         return () => {
-            stopScanning();
+            // Cleanup scanner on unmount
+            if (scannerRef.current) {
+                scannerRef.current.stop().catch(console.error);
+                scannerRef.current.clear();
+            }
         };
     }, []);
 
@@ -63,13 +67,32 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
         localStorage.setItem("staff_name", staffName);
 
         try {
+            // Stop any existing scanner first
+            if (scannerRef.current) {
+                try {
+                    await scannerRef.current.stop();
+                    scannerRef.current.clear();
+                } catch (e) {
+                    console.log("No active scanner to stop");
+                }
+            }
+
             // Unique ID for each scanner instance
             const scannerId = `qr-reader-${mode}`;
             const html5QrCode = new Html5Qrcode(scannerId);
             scannerRef.current = html5QrCode;
 
+            // Request camera permissions explicitly
+            const cameras = await Html5Qrcode.getCameras();
+            if (!cameras || cameras.length === 0) {
+                throw new Error("Kamera bulunamadı");
+            }
+
+            // Use back camera if available, otherwise use first camera
+            const cameraId = cameras.find(cam => cam.label.toLowerCase().includes('back'))?.id || cameras[0].id;
+
             await html5QrCode.start(
-                { facingMode: "environment" },
+                cameraId,
                 {
                     fps: 10,
                     qrbox: { width: 250, height: 250 },
@@ -80,11 +103,15 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
             );
 
             setIsScanning(true);
-        } catch (err) {
+            toast({
+                title: "Kamera Başlatıldı",
+                description: "QR kod okumaya hazır",
+            });
+        } catch (err: any) {
             console.error("Error starting scanner:", err);
             toast({
                 title: "Kamera Hatası",
-                description: "Kamera başlatılamadı. Lütfen kamera izinlerini kontrol edin.",
+                description: err.message || "Kamera başlatılamadı. Lütfen kamera izinlerini kontrol edin.",
                 variant: "destructive",
             });
         }
