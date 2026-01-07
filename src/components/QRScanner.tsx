@@ -142,8 +142,10 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        // Try multiple inversion attempts for better detection
         const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert",
+            inversionAttempts: "attemptBoth",
         });
 
         if (code && code.data) {
@@ -151,6 +153,10 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
             setIsProcessing(true);
             handleQRCode(code.data);
         } else {
+            // Debug: Log every 100 frames to see if scanning is working
+            if (Math.random() < 0.01) {
+                console.log("Scanning... No QR detected yet. Canvas size:", canvas.width, "x", canvas.height);
+            }
             animationRef.current = requestAnimationFrame(scanFrame);
         }
     };
