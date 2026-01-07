@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { sendRegistrationConfirmation } from "@/lib/emailService";
+import { CheckInService } from "@/lib/checkInService";
 
 // Turkish phone number regex - supports various formats
 const turkishPhoneRegex = /^(\+90|0)?[5][0-9]{9}$/;
@@ -181,8 +182,9 @@ export const RegistrationForm = ({ settings }: RegistrationFormProps) => {
       localStorage.setItem("event_registrations", JSON.stringify(existingRegistrations));
 
       // Try to save to database
+      let registrationId = newRegistration.id;
       try {
-        const { error: dbError } = await supabase
+        const { data: insertedData, error: dbError } = await supabase
           .from("registrations")
           .insert([{
             full_name: data.full_name,
@@ -191,10 +193,29 @@ export const RegistrationForm = ({ settings }: RegistrationFormProps) => {
             institution: data.institution,
             position: data.position,
             event_id: eventId,
-          }]);
+          }])
+          .select()
+          .single();
 
         if (dbError) {
           console.log("Database save failed:", dbError);
+        } else if (insertedData) {
+          registrationId = insertedData.id;
+
+          // Create QR code check-in record
+          if (eventId) {
+            try {
+              await CheckInService.createCheckInRecord({
+                registrationId: registrationId,
+                eventId: eventId,
+                email: data.email,
+                fullName: data.full_name,
+                timestamp: new Date().toISOString(),
+              });
+            } catch (qrError) {
+              console.log("QR code record creation failed:", qrError);
+            }
+          }
         }
       } catch (dbError) {
         console.log("Database save failed, using localStorage:", dbError);

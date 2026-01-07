@@ -2,6 +2,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEventSettings } from "@/hooks/useEventSettings";
+import { useSectionStyles } from "@/hooks/useSectionStyles";
 import { useEffect, useState } from "react";
 
 interface EventHeroProps {
@@ -10,6 +11,23 @@ interface EventHeroProps {
     subtitle?: string;
     tagline?: string;
     description?: string;
+    cta_text?: string;
+    show_poster?: boolean;
+    // Theme settings
+    color_primary?: string;
+    color_secondary?: string;
+    color_accent?: string;
+    gradient_style?: string;
+    padding_y?: number;
+    padding_x?: number;
+    enter_animation?: string;
+    animation_duration?: number;
+    animation_delay?: number;
+    hover_effects?: boolean;
+    border_radius?: number;
+    shadow_intensity?: number;
+    custom_classes?: string;
+    custom_css?: string;
   };
 }
 
@@ -17,6 +35,9 @@ export const EventHero = ({ settings: customSettings }: EventHeroProps) => {
   const defaultSettings = useEventSettings();
   const settings = customSettings ? { ...defaultSettings, ...customSettings } : defaultSettings;
   const [posterUrl, setPosterUrl] = useState<string>("");
+
+  // Apply theme styles
+  const { style: sectionStyles, className, animationStyle, cardStyles, primaryColorStyle } = useSectionStyles(customSettings || {});
 
   useEffect(() => {
     // Load poster from localStorage
@@ -73,21 +94,22 @@ export const EventHero = ({ settings: customSettings }: EventHeroProps) => {
 
   return (
     <section
-      className="relative min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-background to-secondary/30"
+      className={`relative min-h-screen flex items-center justify-center py-12 px-4 bg-gradient-to-b from-background to-secondary/30 section-themed ${className}`}
+      style={sectionStyles}
       aria-labelledby="event-title"
       role="banner"
     >
       <div className="container max-w-7xl">
         <div className="grid lg:grid-cols-2 gap-8 items-center">
           {/* Poster Column */}
-          {posterUrl && (
+          {posterUrl && customSettings?.show_poster !== false && (
             <div className="order-2 lg:order-1 animate-fade-in">
               <div className="relative">
                 <img
                   src={posterUrl}
                   alt={`${customSettings?.title || settings.event_title} etkinlik afişi`}
                   className="w-full rounded-2xl shadow-2xl object-contain"
-                  style={{ maxHeight: "700px" }}
+                  style={{ maxHeight: "700px", ...cardStyles }}
                   loading="lazy"
                 />
               </div>
@@ -95,14 +117,27 @@ export const EventHero = ({ settings: customSettings }: EventHeroProps) => {
           )}
 
           {/* Content Column */}
-          <div className={`order-1 lg:order-2 animate-fade-in ${!posterUrl ? 'lg:col-span-2 text-center' : ''}`}>
-            <div className="inline-block mb-6 px-6 py-2 bg-accent/10 rounded-full border border-accent/20">
-              <span className="text-accent font-semibold">{customSettings?.title || settings.event_title}</span>
+          <div className={`order-1 lg:order-2 animate-fade-in ${!posterUrl || customSettings?.show_poster === false ? 'lg:col-span-2 text-center' : ''}`}>
+            <div
+              className="inline-block mb-6 px-6 py-2 rounded-full border"
+              style={{
+                backgroundColor: customSettings?.color_accent ? `${customSettings.color_accent}15` : undefined,
+                borderColor: customSettings?.color_accent ? `${customSettings.color_accent}30` : undefined,
+              }}
+            >
+              <span
+                className="font-semibold"
+                style={customSettings?.color_accent ? { color: customSettings.color_accent } : { color: 'hsl(var(--accent))' }}
+              >
+                {customSettings?.title || settings.event_title}
+              </span>
             </div>
 
             <h1 id="event-title" className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
               {(customSettings?.tagline || settings.event_tagline).split(" ").slice(0, 2).join(" ")}{" "}
-              <span className="text-primary">{(customSettings?.tagline || settings.event_tagline).split(" ").slice(2).join(" ")}</span>
+              <span style={primaryColorStyle.color ? primaryColorStyle : { color: 'hsl(var(--primary))' }}>
+                {(customSettings?.tagline || settings.event_tagline).split(" ").slice(2).join(" ")}
+              </span>
             </h1>
 
             <p className="text-xl md:text-2xl text-muted-foreground mb-8 font-light">
@@ -115,20 +150,25 @@ export const EventHero = ({ settings: customSettings }: EventHeroProps) => {
               </p>
             )}
 
-            <Card className="p-8 shadow-[var(--shadow-elegant)] bg-card/80 backdrop-blur" role="region" aria-label="Etkinlik bilgileri">
+            <Card
+              className="p-8 shadow-[var(--shadow-elegant)] bg-card/80 backdrop-blur"
+              style={cardStyles}
+              role="region"
+              aria-label="Etkinlik bilgileri"
+            >
               <div className="space-y-4">
                 <div className="flex items-center gap-3 text-lg">
-                  <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
+                  <Calendar className="w-5 h-5" style={primaryColorStyle} aria-hidden="true" />
                   <span className="font-semibold"><span className="sr-only">Tarih: </span>{formattedDate}</span>
                 </div>
 
                 <div className="flex items-center gap-3 text-lg">
-                  <Clock className="w-5 h-5 text-primary" aria-hidden="true" />
+                  <Clock className="w-5 h-5" style={primaryColorStyle} aria-hidden="true" />
                   <span><span className="sr-only">Saat: </span>Saat: {formattedTime}</span>
                 </div>
 
                 <div className="flex items-center gap-3 text-lg">
-                  <MapPin className="w-5 h-5 text-primary" aria-hidden="true" />
+                  <MapPin className="w-5 h-5" style={primaryColorStyle} aria-hidden="true" />
                   <span><span className="sr-only">Konum: </span>{settings.event_location}</span>
                 </div>
 
@@ -143,9 +183,10 @@ export const EventHero = ({ settings: customSettings }: EventHeroProps) => {
                 variant="hero"
                 size="lg"
                 className="text-lg px-8"
+                style={customSettings?.color_primary ? { backgroundColor: customSettings.color_primary } : undefined}
                 onClick={scrollToRegistration}
               >
-                Etkinliğe Katıl
+                {customSettings?.cta_text || "Etkinliğe Katıl"}
               </Button>
             </div>
           </div>

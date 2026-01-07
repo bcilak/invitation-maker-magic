@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Navigation } from "lucide-react";
 import { useEventSettings } from "@/hooks/useEventSettings";
+import { useSectionStyles } from "@/hooks/useSectionStyles";
 
 interface LocationMapProps {
     settings?: {
@@ -10,11 +11,28 @@ interface LocationMapProps {
         location_detail?: string;
         address?: string;
         map_embed_url?: string;
+        show_directions?: boolean;
+        // Theme settings (matching PageSectionEditor)
+        color_primary?: string;
+        color_secondary?: string;
+        color_accent?: string;
+        gradient_style?: string;
+        padding_y?: number;
+        padding_x?: number;
+        enter_animation?: string;
+        animation_duration?: number;
+        animation_delay?: number;
+        hover_effects?: boolean;
+        border_radius?: number;
+        shadow_intensity?: number;
+        custom_classes?: string;
+        custom_css?: string;
     };
 }
 
 export const LocationMap = ({ settings: customSettings }: LocationMapProps) => {
     const defaultSettings = useEventSettings();
+    const { style: sectionStyles, className: animationClass, cardStyles, primaryColorStyle } = useSectionStyles(customSettings || {});
     const settings = customSettings
         ? {
             ...defaultSettings,
@@ -30,20 +48,22 @@ export const LocationMap = ({ settings: customSettings }: LocationMapProps) => {
 
     return (
         <section
-            className="py-20 px-4 bg-gradient-to-b from-secondary/30 to-background"
+            className={`py-20 px-4 bg-gradient-to-b from-secondary/30 to-background ${animationClass}`}
+            style={sectionStyles}
             aria-labelledby="location-title"
             id="location-section"
         >
             <div className="container max-w-6xl mx-auto">
                 <div className="text-center mb-12">
                     <h2 id="location-title" className="text-4xl md:text-5xl font-bold mb-4">
-                        {customSettings?.location_title || "Etkinlik"} <span className="text-primary">Konumu</span>
+                        {customSettings?.location_title || "Etkinlik"}{" "}
+                        <span style={primaryColorStyle.color ? primaryColorStyle : { color: 'hsl(var(--primary))' }}>Konumu</span>
                     </h2>
                     <p className="text-xl text-muted-foreground mb-2">{settings.event_location}</p>
                     <p className="text-lg text-muted-foreground">{settings.event_location_detail}</p>
                 </div>
 
-                <Card className="overflow-hidden shadow-[var(--shadow-elegant)]">
+                <Card className="overflow-hidden shadow-[var(--shadow-elegant)]" style={cardStyles}>
                     <div className="aspect-video w-full">
                         <iframe
                             src={mapSrc}
@@ -61,7 +81,10 @@ export const LocationMap = ({ settings: customSettings }: LocationMapProps) => {
                     <div className="p-6 bg-card">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                             <div className="flex items-start gap-3 text-left">
-                                <MapPin className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                                <MapPin
+                                    className="w-5 h-5 mt-1 flex-shrink-0"
+                                    style={primaryColorStyle.color ? primaryColorStyle : { color: 'hsl(var(--primary))' }}
+                                />
                                 <div>
                                     <h3 className="font-semibold text-lg mb-1">{settings.event_location}</h3>
                                     <p className="text-muted-foreground">{settings.event_address}</p>
@@ -71,16 +94,19 @@ export const LocationMap = ({ settings: customSettings }: LocationMapProps) => {
                                 </div>
                             </div>
 
-                            <Button
-                                variant="default"
-                                size="lg"
-                                onClick={() => window.open(directionsUrl, "_blank")}
-                                className="flex-shrink-0"
-                                aria-label={`${settings.event_location} için Google Haritalar'da yol tarifi al`}
-                            >
-                                <Navigation className="mr-2 h-4 w-4" aria-hidden="true" />
-                                Yol Tarifi Al
-                            </Button>
+                            {customSettings?.show_directions !== false && (
+                                <Button
+                                    variant="default"
+                                    size="lg"
+                                    onClick={() => window.open(directionsUrl, "_blank")}
+                                    className="flex-shrink-0"
+                                    style={customSettings?.color_primary ? { backgroundColor: customSettings.color_primary } : undefined}
+                                    aria-label={`${settings.event_location} için Google Haritalar'da yol tarifi al`}
+                                >
+                                    <Navigation className="mr-2 h-4 w-4" aria-hidden="true" />
+                                    Yol Tarifi Al
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </Card>

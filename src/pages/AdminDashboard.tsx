@@ -14,17 +14,19 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Download, Search, Loader2, Users, Mail, Building, Settings, LogOut, Calendar, MapPin, Layout, Eye, EyeOff, GripVertical, Save, Plus, Trash2, Image, Edit, ExternalLink, CheckCircle2, Clock, XCircle, Palette, Sparkles, ArrowUpDown, Monitor } from "lucide-react";
+import { Download, Search, Loader2, Users, Mail, Building, Settings, LogOut, Calendar, MapPin, Layout, Eye, EyeOff, GripVertical, Save, Plus, Trash2, Image, Edit, ExternalLink, CheckCircle2, Clock, XCircle, Palette, Sparkles, ArrowUpDown, Monitor, ScanLine } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { InvitationGenerator } from "@/components/InvitationGenerator";
+import { AdvancedInvitationGenerator } from "@/components/AdvancedInvitationGenerator";
 import { PersonalInvitation } from "@/components/PersonalInvitation";
 import { PosterManager } from "@/components/PosterManager";
 import { EventSelector } from "@/components/EventSelector";
 import EventEditor from "@/components/EventEditor";
 import { PageSectionEditor } from "@/components/PageSectionEditor";
+import { QRScanner } from "@/components/QRScanner";
 
 interface Event {
     id: string;
@@ -785,12 +787,16 @@ export default function AdminDashboard() {
                 </div>
 
                 <Tabs defaultValue="registrations" className="space-y-6">
-                    <TabsList className="grid w-full max-w-5xl grid-cols-5">
+                    <TabsList className="grid w-full max-w-6xl grid-cols-6">
                         <TabsTrigger value="events">
                             <Calendar className="w-4 h-4 mr-2" />
                             Etkinlikler
                         </TabsTrigger>
                         <TabsTrigger value="registrations">Kayıtlar</TabsTrigger>
+                        <TabsTrigger value="qr-scanner">
+                            <ScanLine className="w-4 h-4 mr-2" />
+                            QR Okuyucu
+                        </TabsTrigger>
                         <TabsTrigger value="page-builder">
                             <Layout className="w-4 h-4 mr-2" />
                             Sayfa Düzenleyici
@@ -1059,6 +1065,7 @@ export default function AdminDashboard() {
                                                                 fullName={reg.full_name}
                                                                 email={reg.email}
                                                                 eventSettings={eventSettings}
+                                                                registrationId={reg.id}
                                                             />
                                                         )}
                                                     </TableCell>
@@ -1069,6 +1076,66 @@ export default function AdminDashboard() {
                                 </Table>
                             </div>
                         </Card>
+                    </TabsContent>
+
+                    <TabsContent value="qr-scanner" className="space-y-6">
+                        {/* Event Selector */}
+                        <EventSelector
+                            events={events}
+                            selectedEventId={selectedEventId}
+                            onEventChange={handleEventChange}
+                        />
+
+                        {/* QR Scanner Header */}
+                        <Card className="p-6 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-xl bg-green-600">
+                                    <ScanLine className="w-8 h-8 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                                        QR Kod Okuyucu
+                                        <Badge variant="secondary" className="ml-2">
+                                            <Sparkles className="w-3 h-3 mr-1" />
+                                            Canlı
+                                        </Badge>
+                                    </h2>
+                                    <p className="text-muted-foreground">
+                                        Etkinliğe giriş ve çıkış işlemlerini QR kod ile yönetin
+                                    </p>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {selectedEventId ? (
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {/* Check-in Scanner */}
+                                <div>
+                                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                        Giriş Tarama
+                                    </h3>
+                                    <QRScanner eventId={selectedEventId} mode="check-in" />
+                                </div>
+
+                                {/* Check-out Scanner */}
+                                <div>
+                                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                        <XCircle className="w-5 h-5 text-blue-600" />
+                                        Çıkış Tarama
+                                    </h3>
+                                    <QRScanner eventId={selectedEventId} mode="check-out" />
+                                </div>
+                            </div>
+                        ) : (
+                            <Card className="p-12 text-center">
+                                <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                                <h3 className="text-xl font-semibold mb-2">Etkinlik Seçin</h3>
+                                <p className="text-muted-foreground">
+                                    QR kod okuyucuyu kullanmak için önce bir etkinlik seçin
+                                </p>
+                            </Card>
+                        )}
                     </TabsContent>
 
                     <TabsContent value="page-builder">
@@ -1176,13 +1243,12 @@ export default function AdminDashboard() {
                                         return (
                                             <Card
                                                 key={section.id}
-                                                className={`p-4 transition-all duration-200 hover:shadow-md cursor-move border-2 ${
-                                                    draggedItem?.id === section.id 
-                                                        ? "opacity-50 border-primary border-dashed" 
-                                                        : section.is_visible 
-                                                            ? "border-transparent hover:border-primary/30" 
-                                                            : "border-transparent bg-muted/50"
-                                                }`}
+                                                className={`p-4 transition-all duration-200 hover:shadow-md cursor-move border-2 ${draggedItem?.id === section.id
+                                                    ? "opacity-50 border-primary border-dashed"
+                                                    : section.is_visible
+                                                        ? "border-transparent hover:border-primary/30"
+                                                        : "border-transparent bg-muted/50"
+                                                    }`}
                                                 draggable
                                                 onDragStart={() => handleDragStart(section)}
                                                 onDragOver={handleDragOver}
@@ -1280,16 +1346,20 @@ export default function AdminDashboard() {
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
                                     <Image className="w-6 h-6" />
-                                    Davetiye Görseli Oluştur
+                                    Gelişmiş Davetiye Oluşturucu
+                                    <Badge variant="secondary" className="ml-2">
+                                        <Sparkles className="w-3 h-3 mr-1" />
+                                        Yeni
+                                    </Badge>
                                 </h2>
                                 <p className="text-muted-foreground">
-                                    Etkinlik bilgilerinizden otomatik olarak davetiye görseli oluşturun.
-                                    Farklı şablonlar arasından seçim yapabilir ve sosyal medyada paylaşabilirsiniz.
+                                    8 farklı şablon, özelleştirilebilir renkler, QR kod desteği ve çoklu boyut seçenekleri.
+                                    Sosyal medya için optimize edilmiş davetiye görselleri oluşturun.
                                 </p>
                             </div>
 
                             {eventSettings ? (
-                                <InvitationGenerator eventSettings={eventSettings} />
+                                <AdvancedInvitationGenerator eventSettings={eventSettings} />
                             ) : (
                                 <div className="text-center py-12">
                                     <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />

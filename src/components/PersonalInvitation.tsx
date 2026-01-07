@@ -1,11 +1,13 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import QRCode from "qrcode";
 
 interface PersonalInvitationProps {
     fullName: string;
     email: string;
     eventSettings: {
+        id?: string;
         event_title: string;
         event_subtitle: string;
         event_tagline: string;
@@ -14,6 +16,7 @@ interface PersonalInvitationProps {
         event_location_detail: string;
         event_address: string;
     };
+    registrationId?: string;
     template?: "modern" | "elegant" | "minimal" | "colorful";
 }
 
@@ -21,13 +24,48 @@ export const PersonalInvitation = ({
     fullName,
     email,
     eventSettings,
+    registrationId,
     template = "elegant",
 }: PersonalInvitationProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
 
     useEffect(() => {
-        generatePersonalInvitation();
-    }, [fullName, email, eventSettings, template]);
+        generateQRCode();
+    }, [fullName, email, eventSettings, registrationId]);
+
+    useEffect(() => {
+        if (qrCodeUrl) {
+            generatePersonalInvitation();
+        }
+    }, [fullName, email, eventSettings, template, qrCodeUrl]);
+
+    const generateQRCode = async () => {
+        try {
+            // Create unique QR code data for this invitation
+            const qrData = JSON.stringify({
+                registrationId: registrationId || `${email}-${Date.now()}`,
+                eventId: eventSettings.id,
+                email: email,
+                fullName: fullName,
+                timestamp: new Date().toISOString(),
+            });
+
+            // Generate QR code as data URL
+            const qrDataUrl = await QRCode.toDataURL(qrData, {
+                width: 200,
+                margin: 1,
+                color: {
+                    dark: "#2C1810",
+                    light: "#FFF8F0",
+                },
+            });
+
+            setQrCodeUrl(qrDataUrl);
+        } catch (error) {
+            console.error("QR code generation error:", error);
+        }
+    };
 
     const generatePersonalInvitation = () => {
         const canvas = canvasRef.current;
@@ -162,13 +200,34 @@ export const PersonalInvitation = ({
         ctx.fillStyle = "#999";
         ctx.fillText(eventSettings.event_address, canvas.width / 2, canvas.height - 90);
 
-        // Personal QR code placeholder
-        ctx.strokeStyle = "#D4A574";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(canvas.width / 2 - 60, canvas.height - 60, 120, 40);
-        ctx.font = "14px Georgia";
-        ctx.fillStyle = "#8B6F47";
-        ctx.fillText("Kişiye Özel Davetiye", canvas.width / 2, canvas.height - 33);
+        // Personal QR code
+        if (qrCodeUrl) {
+            const qrImage = new Image();
+            qrImage.onload = () => {
+                const qrSize = 120;
+                const qrX = canvas.width / 2 - qrSize / 2;
+                const qrY = canvas.height - 160;
+
+                // Draw QR code background
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
+
+                // Draw border around QR code
+                ctx.strokeStyle = "#D4A574";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
+
+                // Draw QR code
+                ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+                // QR code label
+                ctx.font = "14px Georgia";
+                ctx.fillStyle = "#8B6F47";
+                ctx.textAlign = "center";
+                ctx.fillText("Kişiye Özel Giriş QR Kodu", canvas.width / 2, qrY - 20);
+            };
+            qrImage.src = qrCodeUrl;
+        }
     };
 
     const downloadInvitation = () => {

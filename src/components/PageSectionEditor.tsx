@@ -533,17 +533,17 @@ export function PageSectionEditor({ section, onSave, onCancel }: PageSectionEdit
 
                                 {(!editedSection.settings.program_items ||
                                     editedSection.settings.program_items.length === 0) && (
-                                    <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                                        <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                                        <p className="text-muted-foreground mb-4">
-                                            Henüz program maddesi eklenmemiş
-                                        </p>
-                                        <Button type="button" onClick={addProgramItem}>
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            İlk Maddeyi Ekle
-                                        </Button>
-                                    </div>
-                                )}
+                                        <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                                            <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                                            <p className="text-muted-foreground mb-4">
+                                                Henüz program maddesi eklenmemiş
+                                            </p>
+                                            <Button type="button" onClick={addProgramItem}>
+                                                <Plus className="w-4 h-4 mr-2" />
+                                                İlk Maddeyi Ekle
+                                            </Button>
+                                        </div>
+                                    )}
                             </div>
                         </div>
                     )}

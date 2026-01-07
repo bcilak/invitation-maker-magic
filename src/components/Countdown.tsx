@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useEventSettings } from "@/hooks/useEventSettings";
+import { useSectionStyles } from "@/hooks/useSectionStyles";
 
 interface TimeLeft {
     days: number;
@@ -13,12 +14,31 @@ interface CountdownProps {
     settings?: {
         countdown_title?: string;
         show_countdown?: boolean;
+        show_days?: boolean;
+        show_seconds?: boolean;
+        counter_style?: string;
+        // Theme settings (matching PageSectionEditor)
+        color_primary?: string;
+        color_secondary?: string;
+        color_accent?: string;
+        gradient_style?: string;
+        padding_y?: number;
+        padding_x?: number;
+        enter_animation?: string;
+        animation_duration?: number;
+        animation_delay?: number;
+        hover_effects?: boolean;
+        border_radius?: number;
+        shadow_intensity?: number;
+        custom_classes?: string;
+        custom_css?: string;
     };
 }
 
 export const Countdown = ({ settings: customSettings }: CountdownProps) => {
     const settings = useEventSettings();
     const targetDate = new Date(settings.event_date).getTime();
+    const { style: sectionStyles, className: animationClass, cardStyles, primaryColorStyle } = useSectionStyles(customSettings || {});
 
     const calculateTimeLeft = (): TimeLeft => {
         const now = new Date().getTime();
@@ -68,7 +88,8 @@ export const Countdown = ({ settings: customSettings }: CountdownProps) => {
 
     return (
         <section
-            className="py-20 px-4 bg-gradient-to-b from-background to-secondary/30"
+            className={`py-20 px-4 bg-gradient-to-b from-background to-secondary/30 ${animationClass}`}
+            style={sectionStyles}
             aria-labelledby="countdown-title"
             id="countdown-section"
         >
@@ -93,8 +114,13 @@ export const Countdown = ({ settings: customSettings }: CountdownProps) => {
                         <Card
                             key={unit.label}
                             className="p-6 text-center shadow-[var(--shadow-elegant)] hover:scale-105 transition-transform duration-300"
+                            style={cardStyles}
                         >
-                            <div className="text-5xl md:text-6xl font-bold text-primary mb-2" aria-hidden="true">
+                            <div
+                                className="text-5xl md:text-6xl font-bold mb-2"
+                                style={primaryColorStyle.color ? primaryColorStyle : { color: 'hsl(var(--primary))' }}
+                                aria-hidden="true"
+                            >
                                 {unit.value.toString().padStart(2, "0")}
                             </div>
                             <div className="text-lg text-muted-foreground font-semibold">
