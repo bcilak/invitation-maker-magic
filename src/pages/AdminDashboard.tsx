@@ -1078,7 +1078,7 @@ export default function AdminDashboard() {
                         </Card>
                     </TabsContent>
 
-                    <TabsContent value="qr-scanner" className="space-y-6">
+                    <TabsContent value="qr-scanner" className="space-y-4 md:space-y-6">
                         {/* Event Selector */}
                         <EventSelector
                             events={events}
@@ -1087,20 +1087,20 @@ export default function AdminDashboard() {
                         />
 
                         {/* QR Scanner Header */}
-                        <Card className="p-6 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-xl bg-green-600">
-                                    <ScanLine className="w-8 h-8 text-white" />
+                        <Card className="p-4 md:p-6 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+                                <div className="p-2 md:p-3 rounded-xl bg-green-600">
+                                    <ScanLine className="w-6 h-6 md:w-8 md:h-8 text-white" />
                                 </div>
                                 <div className="flex-1">
-                                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                                    <h2 className="text-xl md:text-2xl font-bold flex flex-wrap items-center gap-2">
                                         QR Kod Okuyucu
-                                        <Badge variant="secondary" className="ml-2">
+                                        <Badge variant="secondary">
                                             <Sparkles className="w-3 h-3 mr-1" />
                                             Canlı
                                         </Badge>
                                     </h2>
-                                    <p className="text-muted-foreground">
+                                    <p className="text-sm md:text-base text-muted-foreground mt-1">
                                         Etkinliğe giriş ve çıkış işlemlerini QR kod ile yönetin
                                     </p>
                                 </div>
@@ -1108,11 +1108,11 @@ export default function AdminDashboard() {
                         </Card>
 
                         {selectedEventId ? (
-                            <div className="grid md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                                 {/* Check-in Scanner */}
                                 <div>
-                                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                    <h3 className="text-base md:text-lg font-bold mb-3 md:mb-4 flex items-center gap-2">
+                                        <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
                                         Giriş Tarama
                                     </h3>
                                     <QRScanner eventId={selectedEventId} mode="check-in" />
@@ -1120,18 +1120,18 @@ export default function AdminDashboard() {
 
                                 {/* Check-out Scanner */}
                                 <div>
-                                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                        <XCircle className="w-5 h-5 text-blue-600" />
+                                    <h3 className="text-base md:text-lg font-bold mb-3 md:mb-4 flex items-center gap-2">
+                                        <XCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
                                         Çıkış Tarama
                                     </h3>
                                     <QRScanner eventId={selectedEventId} mode="check-out" />
                                 </div>
                             </div>
                         ) : (
-                            <Card className="p-12 text-center">
-                                <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                                <h3 className="text-xl font-semibold mb-2">Etkinlik Seçin</h3>
-                                <p className="text-muted-foreground">
+                            <Card className="p-8 md:p-12 text-center">
+                                <Calendar className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 text-muted-foreground" />
+                                <h3 className="text-lg md:text-xl font-semibold mb-2">Etkinlik Seçin</h3>
+                                <p className="text-sm md:text-base text-muted-foreground">
                                     QR kod okuyucuyu kullanmak için önce bir etkinlik seçin
                                 </p>
                             </Card>

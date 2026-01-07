@@ -63,7 +63,9 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
         localStorage.setItem("staff_name", staffName);
 
         try {
-            const html5QrCode = new Html5Qrcode("qr-reader");
+            // Unique ID for each scanner instance
+            const scannerId = `qr-reader-${mode}`;
+            const html5QrCode = new Html5Qrcode(scannerId);
             scannerRef.current = html5QrCode;
 
             await html5QrCode.start(
@@ -71,6 +73,7 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
                 {
                     fps: 10,
                     qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0,
                 },
                 onScanSuccess,
                 onScanFailure
@@ -173,17 +176,17 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
     };
 
     return (
-        <div className="space-y-6">
-            <Card className="p-6">
+        <div className="space-y-4 md:space-y-6">
+            <Card className="p-4 md:p-6">
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                             {mode === "check-in" ? (
-                                <LogIn className="w-6 h-6 text-green-600" />
+                                <LogIn className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
                             ) : (
-                                <LogOut className="w-6 h-6 text-blue-600" />
+                                <LogOut className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                             )}
-                            <h2 className="text-2xl font-bold">
+                            <h2 className="text-lg md:text-2xl font-bold">
                                 {mode === "check-in" ? "Giriş" : "Çıkış"} Okuyucu
                             </h2>
                         </div>
@@ -225,17 +228,17 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
             </Card>
 
             {/* Scanner View */}
-            <Card className="p-6">
+            <Card className="p-4 md:p-6">
                 <div
-                    id="qr-reader"
+                    id={`qr-reader-${mode}`}
                     className={`w-full ${isScanning ? "block" : "hidden"}`}
                     style={{ minHeight: "300px" }}
                 />
                 {!isScanning && (
                     <div className="text-center py-12 text-muted-foreground">
-                        <Camera className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                        <p>QR kod okuyucu hazır</p>
-                        <p className="text-sm">Taramayı başlatmak için yukarıdaki butona tıklayın</p>
+                        <Camera className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 opacity-50" />
+                        <p className="text-sm md:text-base">QR kod okuyucu hazır</p>
+                        <p className="text-xs md:text-sm">Taramayı başlatmak için yukarıdaki butona tıklayın</p>
                     </div>
                 )}
             </Card>
@@ -243,38 +246,38 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
             {/* Scan Result */}
             {scanResult && (
                 <Card
-                    className={`p-6 border-2 ${
+                    className={`p-4 md:p-6 border-2 ${
                         scanResult.success
                             ? "border-green-500 bg-green-50"
                             : "border-red-500 bg-red-50"
                     }`}
                 >
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
                         {scanResult.success ? (
-                            <CheckCircle2 className="w-12 h-12 text-green-600" />
+                            <CheckCircle2 className="w-10 h-10 md:w-12 md:h-12 text-green-600 flex-shrink-0" />
                         ) : (
-                            <XCircle className="w-12 h-12 text-red-600" />
+                            <XCircle className="w-10 h-10 md:w-12 md:h-12 text-red-600 flex-shrink-0" />
                         )}
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                             <h3
-                                className={`text-xl font-bold ${
+                                className={`text-lg md:text-xl font-bold ${
                                     scanResult.success ? "text-green-800" : "text-red-800"
                                 }`}
                             >
                                 {scanResult.message}
                             </h3>
                             {lastScannedData && (
-                                <div className="mt-2 space-y-1 text-sm">
+                                <div className="mt-2 space-y-1 text-xs md:text-sm">
                                     <div className="flex items-center gap-2">
-                                        <User className="w-4 h-4" />
-                                        <span>{lastScannedData.fullName}</span>
+                                        <User className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                                        <span className="truncate">{lastScannedData.fullName}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Mail className="w-4 h-4" />
-                                        <span>{lastScannedData.email}</span>
+                                        <Mail className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                                        <span className="truncate">{lastScannedData.email}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4" />
+                                        <Clock className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
                                         <span>
                                             {new Date().toLocaleString("tr-TR", {
                                                 dateStyle: "short",
@@ -290,12 +293,12 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
             )}
 
             {/* Instructions */}
-            <Card className="p-6 bg-blue-50 border-blue-200">
-                <h3 className="font-bold mb-2 flex items-center gap-2">
-                    <UserCheck className="w-5 h-5 text-blue-600" />
+            <Card className="p-4 md:p-6 bg-blue-50 border-blue-200">
+                <h3 className="text-sm md:text-base font-bold mb-2 flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
                     Kullanım Talimatları
                 </h3>
-                <ul className="text-sm space-y-1 text-blue-900">
+                <ul className="text-xs md:text-sm space-y-1 text-blue-900">
                     <li>• Personel adınızı girin ve taramayı başlatın</li>
                     <li>• QR kodu kamera önüne getirin</li>
                     <li>• QR kod otomatik olarak okunacak ve işlem yapılacak</li>
