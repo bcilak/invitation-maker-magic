@@ -192,41 +192,53 @@ export const PersonalInvitation = ({
         ctx.fillText(eventSettings.event_location_detail, canvas.width / 2, detailsY + 275);
 
         // Footer
-        ctx.font = "italic 22px Georgia";
-        ctx.fillStyle = "#8B6F47";
-        ctx.fillText("Katılımınızı bekliyoruz", canvas.width / 2, canvas.height - 140);
-
-        ctx.font = "20px Georgia";
-        ctx.fillStyle = "#999";
-        ctx.fillText(eventSettings.event_address, canvas.width / 2, canvas.height - 90);
-
-        // Personal QR code
+        // Personal QR code - Draw before text so text is on top
         if (qrCodeUrl) {
             const qrImage = new Image();
             qrImage.onload = () => {
-                const qrSize = 120;
+                const qrSize = 150;
                 const qrX = canvas.width / 2 - qrSize / 2;
-                const qrY = canvas.height - 160;
+                const qrY = canvas.height - 220;
 
-                // Draw QR code background
+                // Draw white background with padding
+                const padding = 15;
                 ctx.fillStyle = "#FFFFFF";
-                ctx.fillRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
+                ctx.fillRect(qrX - padding, qrY - padding, qrSize + (padding * 2), qrSize + (padding * 2));
 
-                // Draw border around QR code
+                // Draw elegant border
                 ctx.strokeStyle = "#D4A574";
-                ctx.lineWidth = 3;
-                ctx.strokeRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
+                ctx.lineWidth = 4;
+                ctx.strokeRect(qrX - padding, qrY - padding, qrSize + (padding * 2), qrSize + (padding * 2));
 
                 // Draw QR code
                 ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
 
-                // QR code label
-                ctx.font = "14px Georgia";
+                // QR code label above
+                ctx.font = "bold 16px Georgia";
                 ctx.fillStyle = "#8B6F47";
                 ctx.textAlign = "center";
-                ctx.fillText("Kişiye Özel Giriş QR Kodu", canvas.width / 2, qrY - 20);
+                ctx.fillText("Kişiye Özel Giriş QR Kodu", canvas.width / 2, qrY - 25);
+
+                // Draw invitation text below QR
+                const textY = qrY + qrSize + 40;
+                ctx.font = "italic 22px Georgia";
+                ctx.fillStyle = "#8B6F47";
+                ctx.fillText("Katılımınızı bekliyoruz", canvas.width / 2, textY);
+
+                ctx.font = "18px Georgia";
+                ctx.fillStyle = "#999";
+                ctx.fillText(eventSettings.event_address, canvas.width / 2, textY + 35);
             };
             qrImage.src = qrCodeUrl;
+        } else {
+            // Fallback if QR not loaded yet
+            ctx.font = "italic 22px Georgia";
+            ctx.fillStyle = "#8B6F47";
+            ctx.fillText("Katılımınızı bekliyoruz", canvas.width / 2, canvas.height - 140);
+
+            ctx.font = "20px Georgia";
+            ctx.fillStyle = "#999";
+            ctx.fillText(eventSettings.event_address, canvas.width / 2, canvas.height - 90);
         }
     };
 
