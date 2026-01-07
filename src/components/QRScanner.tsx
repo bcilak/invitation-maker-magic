@@ -121,7 +121,10 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
     };
 
     const scanFrame = () => {
+        console.log("scanFrame called - isScanning:", isScanning, "isProcessing:", isProcessing);
+
         if (!isScanning || !videoRef.current || !canvasRef.current || isProcessing) {
+            console.log("scanFrame early return - isScanning:", isScanning, "video:", !!videoRef.current, "canvas:", !!canvasRef.current, "isProcessing:", isProcessing);
             if (isScanning && !isProcessing) {
                 animationRef.current = requestAnimationFrame(scanFrame);
             }
@@ -132,13 +135,17 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
 
+        console.log("Video ready state:", video.readyState, "HAVE_ENOUGH_DATA:", video.HAVE_ENOUGH_DATA);
+
         if (!ctx || video.readyState !== video.HAVE_ENOUGH_DATA) {
+            console.log("Video not ready yet, waiting...");
             animationRef.current = requestAnimationFrame(scanFrame);
             return;
         }
 
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
+        console.log("Drawing video to canvas:", video.videoWidth, "x", video.videoHeight);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
