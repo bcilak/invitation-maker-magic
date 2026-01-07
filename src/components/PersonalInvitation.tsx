@@ -51,14 +51,15 @@ export const PersonalInvitation = ({
                 timestamp: new Date().toISOString(),
             });
 
-            // Generate QR code as data URL
+            // Generate QR code as data URL with high contrast colors for better scanning
             const qrDataUrl = await QRCode.toDataURL(qrData, {
-                width: 200,
-                margin: 1,
+                width: 300,
+                margin: 2,
                 color: {
-                    dark: "#2C1810",
-                    light: "#FFF8F0",
+                    dark: "#000000",
+                    light: "#FFFFFF",
                 },
+                errorCorrectionLevel: 'H',
             });
 
             setQrCodeUrl(qrDataUrl);
