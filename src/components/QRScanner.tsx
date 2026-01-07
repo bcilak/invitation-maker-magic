@@ -27,6 +27,7 @@ interface QRScannerProps {
 
 export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
     const [isScanning, setIsScanning] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [staffName, setStaffName] = useState("");
     const [lastScannedData, setLastScannedData] = useState<CheckInData | null>(null);
     const [scanResult, setScanResult] = useState<{
@@ -120,7 +121,10 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
     };
 
     const scanFrame = () => {
-        if (!isScanning || !videoRef.current || !canvasRef.current) {
+        if (!isScanning || !videoRef.current || !canvasRef.current || isProcessing) {
+            if (isScanning && !isProcessing) {
+                animationRef.current = requestAnimationFrame(scanFrame);
+            }
             return;
         }
 
@@ -144,6 +148,7 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
 
         if (code && code.data) {
             console.log("QR Code detected:", code.data);
+            setIsProcessing(true);
             handleQRCode(code.data);
         } else {
             animationRef.current = requestAnimationFrame(scanFrame);
@@ -152,7 +157,12 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
 
     const handleQRCode = async (qrData: string) => {
         try {
+            console.log("Raw QR Data:", qrData);
             const parsedData: CheckInData = JSON.parse(qrData);
+            console.log("Parsed QR Data:", parsedData);
+            console.log("Expected Event ID:", eventId);
+            console.log("QR Event ID:", parsedData.eventId);
+
             setLastScannedData(parsedData);
 
             if (parsedData.eventId !== eventId) {
@@ -162,11 +172,12 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
                 });
                 toast({
                     title: "Hatalı QR Kod",
-                    description: "Bu QR kod bu etkinlik için geçerli değil",
+                    description: `Bu QR kod bu etkinlik için geçerli değil. Beklenen: ${eventId}, Gelen: ${parsedData.eventId}`,
                     variant: "destructive",
                 });
                 setTimeout(() => {
                     setScanResult(null);
+                    setIsProcessing(false);
                     animationRef.current = requestAnimationFrame(scanFrame);
                 }, 3000);
                 return;
@@ -202,6 +213,7 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
 
             setTimeout(() => {
                 setScanResult(null);
+                setIsProcessing(false);
                 animationRef.current = requestAnimationFrame(scanFrame);
             }, 3000);
         } catch (err) {
@@ -217,6 +229,7 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
             });
             setTimeout(() => {
                 setScanResult(null);
+                setIsProcessing(false);
                 animationRef.current = requestAnimationFrame(scanFrame);
             }, 3000);
         }
