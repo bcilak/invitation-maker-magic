@@ -71,37 +71,49 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
             if (scannerRef.current) {
                 try {
                     await scannerRef.current.stop();
-                    scannerRef.current.clear();
+                    await scannerRef.current.clear();
+                    scannerRef.current = null;
                 } catch (e) {
-                    console.log("No active scanner to stop");
+                    console.log("No active scanner to stop", e);
                 }
             }
 
+            // Wait a moment for cleanup
+            await new Promise(resolve => setTimeout(resolve, 100));
+
             // Unique ID for each scanner instance
             const scannerId = `qr-reader-${mode}`;
+
+            // Make sure the element exists
+            const element = document.getElementById(scannerId);
+            if (!element) {
+                throw new Error("QR okuyucu elementi bulunamadı");
+            }
+
+            console.log("Creating scanner for element:", scannerId);
             const html5QrCode = new Html5Qrcode(scannerId);
             scannerRef.current = html5QrCode;
 
-            // Request camera permissions explicitly
-            const cameras = await Html5Qrcode.getCameras();
-            if (!cameras || cameras.length === 0) {
-                throw new Error("Kamera bulunamadı");
-            }
-
-            // Use back camera if available, otherwise use first camera
-            const cameraId = cameras.find(cam => cam.label.toLowerCase().includes('back'))?.id || cameras[0].id;
-
+            // Start with constraints instead of camera ID
+            console.log("Starting camera...");
             await html5QrCode.start(
-                cameraId,
+                { facingMode: "environment" },
                 {
                     fps: 10,
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0,
+                    qrbox: function(viewfinderWidth, viewfinderHeight) {
+                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                        const qrboxSize = Math.floor(minEdge * 0.7);
+                        return {
+                            width: qrboxSize,
+                            height: qrboxSize
+                        };
+                    },
                 },
                 onScanSuccess,
                 onScanFailure
             );
 
+            console.log("Camera started successfully");
             setIsScanning(true);
             toast({
                 title: "Kamera Başlatıldı",
@@ -109,19 +121,30 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
             });
         } catch (err: any) {
             console.error("Error starting scanner:", err);
+            const errorMessage = err?.message || err?.toString() || "Bilinmeyen hata";
             toast({
                 title: "Kamera Hatası",
-                description: err.message || "Kamera başlatılamadı. Lütfen kamera izinlerini kontrol edin.",
+                description: `Kamera başlatılamadı: ${errorMessage}. Lütfen kamera izinlerini kontrol edin.`,
                 variant: "destructive",
             });
+
+            // Reset state on error
+            setIsScanning(false);
+            if (scannerRef.current) {
+                scannerRef.current = null;
+            }
         }
     };
 
     const stopScanning = async () => {
-        if (scannerRef.current && isScanning) {
+        console.log("Stopping scanner...");
+        if (scannerRef.current) {
             try {
-                await scannerRef.current.stop();
-                scannerRef.current.clear();
+                if (isScanning) {
+                    await scannerRef.current.stop();
+                }
+                await scannerRef.current.clear();
+                scannerRef.current = null;
             } catch (err) {
                 console.error("Error stopping scanner:", err);
             }
