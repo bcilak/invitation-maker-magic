@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import jsQR from "jsqr";
+import { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import {
     XCircle,
     User,
     Mail,
+    Calendar,
     Clock,
     LogIn,
     LogOut,
@@ -33,10 +34,7 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
         success: boolean;
         message: string;
     } | null>(null);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const streamRef = useRef<MediaStream | null>(null);
-    const animationRef = useRef<number | null>(null);
+    const scannerRef = useRef<Html5Qrcode | null>(null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -47,7 +45,11 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
         }
 
         return () => {
-            stopScanning();
+            // Cleanup scanner on unmount
+            if (scannerRef.current) {
+                scannerRef.current.stop().catch(console.error);
+                scannerRef.current.clear();
+            }
         };
     }, []);
 
@@ -61,101 +63,103 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
             return;
         }
 
+        // Save staff name
         localStorage.setItem("staff_name", staffName);
 
         try {
-            console.log("Requesting camera access...");
-
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: "environment",
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                },
-            });
-
-            console.log("Camera access granted");
-            streamRef.current = stream;
-
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                await videoRef.current.play();
-                console.log("Video playing");
-                setIsScanning(true);
-                requestAnimationFrame(scanFrame);
-
-                toast({
-                    title: "Kamera Başlatıldı",
-                    description: "QR kod okumaya hazır",
-                });
+            // Stop any existing scanner first
+            if (scannerRef.current) {
+                try {
+                    await scannerRef.current.stop();
+                    await scannerRef.current.clear();
+                    scannerRef.current = null;
+                } catch (e) {
+                    console.log("No active scanner to stop", e);
+                }
             }
+
+            // Wait a moment for cleanup
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Unique ID for each scanner instance
+            const scannerId = `qr-reader-${mode}`;
+
+            // Make sure the element exists
+            const element = document.getElementById(scannerId);
+            if (!element) {
+                throw new Error("QR okuyucu elementi bulunamadı");
+            }
+
+            console.log("Creating scanner for element:", scannerId);
+            const html5QrCode = new Html5Qrcode(scannerId);
+            scannerRef.current = html5QrCode;
+
+            // Start with constraints instead of camera ID
+            console.log("Starting camera...");
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: function(viewfinderWidth, viewfinderHeight) {
+                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                        const qrboxSize = Math.floor(minEdge * 0.7);
+                        return {
+                            width: qrboxSize,
+                            height: qrboxSize
+                        };
+                    },
+                },
+                onScanSuccess,
+                onScanFailure
+            );
+
+            console.log("Camera started successfully");
+            setIsScanning(true);
+            toast({
+                title: "Kamera Başlatıldı",
+                description: "QR kod okumaya hazır",
+            });
         } catch (err: any) {
-            console.error("Camera error:", err);
+            console.error("Error starting scanner:", err);
+            const errorMessage = err?.message || err?.toString() || "Bilinmeyen hata";
             toast({
                 title: "Kamera Hatası",
-                description: err.message || "Kamera erişimi reddedildi",
+                description: `Kamera başlatılamadı: ${errorMessage}. Lütfen kamera izinlerini kontrol edin.`,
                 variant: "destructive",
             });
+
+            // Reset state on error
+            setIsScanning(false);
+            if (scannerRef.current) {
+                scannerRef.current = null;
+            }
         }
     };
 
-    const stopScanning = () => {
-        console.log("Stopping camera...");
-
-        if (animationRef.current) {
-            cancelAnimationFrame(animationRef.current);
-            animationRef.current = null;
+    const stopScanning = async () => {
+        console.log("Stopping scanner...");
+        if (scannerRef.current) {
+            try {
+                if (isScanning) {
+                    await scannerRef.current.stop();
+                }
+                await scannerRef.current.clear();
+                scannerRef.current = null;
+            } catch (err) {
+                console.error("Error stopping scanner:", err);
+            }
         }
-
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-            streamRef.current = null;
-        }
-
-        if (videoRef.current) {
-            videoRef.current.srcObject = null;
-        }
-
         setIsScanning(false);
     };
 
-    const scanFrame = () => {
-        if (!isScanning || !videoRef.current || !canvasRef.current) {
-            return;
-        }
-
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-
-        if (!ctx || video.readyState !== video.HAVE_ENOUGH_DATA) {
-            animationRef.current = requestAnimationFrame(scanFrame);
-            return;
-        }
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert",
-        });
-
-        if (code && code.data) {
-            console.log("QR Code detected:", code.data);
-            handleQRCode(code.data);
-        } else {
-            animationRef.current = requestAnimationFrame(scanFrame);
-        }
-    };
-
-    const handleQRCode = async (qrData: string) => {
+    const onScanSuccess = async (decodedText: string) => {
         try {
-            const parsedData: CheckInData = JSON.parse(qrData);
-            setLastScannedData(parsedData);
+            // Parse QR code data
+            const qrData: CheckInData = JSON.parse(decodedText);
+            setLastScannedData(qrData);
 
-            if (parsedData.eventId !== eventId) {
+            // Verify event ID matches
+            if (qrData.eventId !== eventId) {
                 setScanResult({
                     success: false,
                     message: "Bu QR kod farklı bir etkinliğe ait!",
@@ -165,18 +169,15 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
                     description: "Bu QR kod bu etkinlik için geçerli değil",
                     variant: "destructive",
                 });
-                setTimeout(() => {
-                    setScanResult(null);
-                    animationRef.current = requestAnimationFrame(scanFrame);
-                }, 3000);
                 return;
             }
 
+            // Process check-in or check-out
             let result;
             if (mode === "check-in") {
-                result = await CheckInService.processCheckIn(qrData, staffName);
+                result = await CheckInService.processCheckIn(decodedText, staffName);
             } else {
-                result = await CheckInService.processCheckOut(qrData, staffName);
+                result = await CheckInService.processCheckOut(decodedText, staffName);
             }
 
             if (result.success) {
@@ -186,7 +187,7 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
                 });
                 toast({
                     title: "Başarılı",
-                    description: `${parsedData.fullName} - ${mode === "check-in" ? "Giriş" : "Çıkış"} kaydedildi`,
+                    description: `${qrData.fullName} - ${mode === "check-in" ? "Giriş" : "Çıkış"} kaydedildi`,
                 });
             } else {
                 setScanResult({
@@ -200,12 +201,14 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
                 });
             }
 
+            // Stop scanning briefly to show result
+            await stopScanning();
             setTimeout(() => {
                 setScanResult(null);
-                animationRef.current = requestAnimationFrame(scanFrame);
+                if (staffName) startScanning();
             }, 3000);
         } catch (err) {
-            console.error("QR processing error:", err);
+            console.error("Error processing QR code:", err);
             setScanResult({
                 success: false,
                 message: "Geçersiz QR kod formatı",
@@ -215,11 +218,11 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
                 description: "QR kod okunamadı",
                 variant: "destructive",
             });
-            setTimeout(() => {
-                setScanResult(null);
-                animationRef.current = requestAnimationFrame(scanFrame);
-            }, 3000);
         }
+    };
+
+    const onScanFailure = (error: string) => {
+        // Silent fail - QR code not found in frame
     };
 
     return (
@@ -243,9 +246,9 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
                     </div>
 
                     <div>
-                        <Label htmlFor={`staffName-${mode}`}>Personel Adı</Label>
+                        <Label htmlFor="staffName">Personel Adı</Label>
                         <Input
-                            id={`staffName-${mode}`}
+                            id="staffName"
                             value={staffName}
                             onChange={(e) => setStaffName(e.target.value)}
                             placeholder="Adınızı girin"
@@ -276,34 +279,18 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
 
             {/* Scanner View */}
             <Card className="p-4 md:p-6">
-                <div className="relative">
-                    <video
-                        ref={videoRef}
-                        className={`w-full rounded-lg ${isScanning ? "block" : "hidden"}`}
-                        playsInline
-                        muted
-                    />
-                    <canvas ref={canvasRef} className="hidden" />
-
-                    {!isScanning && (
-                        <div className="text-center py-12 text-muted-foreground">
-                            <Camera className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 opacity-50" />
-                            <p className="text-sm md:text-base">QR kod okuyucu hazır</p>
-                            <p className="text-xs md:text-sm">Taramayı başlatmak için yukarıdaki butona tıklayın</p>
-                        </div>
-                    )}
-
-                    {isScanning && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="w-48 h-48 md:w-64 md:h-64 border-4 border-green-500 rounded-lg shadow-lg">
-                                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-500 rounded-tl-lg" />
-                                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-500 rounded-tr-lg" />
-                                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-500 rounded-bl-lg" />
-                                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-500 rounded-br-lg" />
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <div
+                    id={`qr-reader-${mode}`}
+                    className={`w-full ${isScanning ? "block" : "hidden"}`}
+                    style={{ minHeight: "300px" }}
+                />
+                {!isScanning && (
+                    <div className="text-center py-12 text-muted-foreground">
+                        <Camera className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-4 opacity-50" />
+                        <p className="text-sm md:text-base">QR kod okuyucu hazır</p>
+                        <p className="text-xs md:text-sm">Taramayı başlatmak için yukarıdaki butona tıklayın</p>
+                    </div>
+                )}
             </Card>
 
             {/* Scan Result */}
@@ -363,7 +350,7 @@ export const QRScanner = ({ eventId, mode }: QRScannerProps) => {
                 </h3>
                 <ul className="text-xs md:text-sm space-y-1 text-blue-900">
                     <li>• Personel adınızı girin ve taramayı başlatın</li>
-                    <li>• QR kodu yeşil kare içine getirin</li>
+                    <li>• QR kodu kamera önüne getirin</li>
                     <li>• QR kod otomatik olarak okunacak ve işlem yapılacak</li>
                     <li>• Her taramadan sonra 3 saniye bekleyin</li>
                     <li>
